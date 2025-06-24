@@ -71,7 +71,9 @@ export const productosService = {
       if (error) throw error
       return { data, error: null }
     } catch (error) {
-      console.error('Error al obtener productos con filtros:', error)
+      console.error('❌ Error al obtener productos con filtros:', error)
+      console.error('Detalles del error:', error.message)
+      console.error('Código de error:', error.code)
       return { data: null, error }
     }
   },
