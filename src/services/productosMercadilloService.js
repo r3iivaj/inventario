@@ -34,6 +34,23 @@ export const productosMercadilloService = {
     }
   },
 
+  // Obtener productos por mercadillo
+  async getByMercadillo(idMercadillo) {
+    try {
+      const { data, error } = await supabase
+        .from('productos_mercadillo')
+        .select('*')
+        .eq('id_mercadillo', idMercadillo)
+        .order('created_at', { ascending: false })
+      
+      if (error) throw error
+      return { data, error: null }
+    } catch (error) {
+      console.error('Error al obtener productos por mercadillo:', error)
+      return { data: null, error }
+    }
+  },
+
   // Obtener productos por mercadillo con detalles del producto
   async getByMercadilloConDetalles(idMercadillo) {
     try {
@@ -180,6 +197,32 @@ export const productosMercadilloService = {
       }
     } catch (error) {
       console.error('Error al obtener estadísticas del producto:', error)
+      return { data: null, error }
+    }
+  },
+
+  // Obtener estadísticas de un mercadillo
+  async getStats(idMercadillo) {
+    try {
+      const { data, error } = await supabase
+        .from('productos_mercadillo')
+        .select('total_vendido')
+        .eq('id_mercadillo', idMercadillo)
+      
+      if (error) throw error
+      
+      const totalIngresos = data.reduce((sum, item) => sum + item.total_vendido, 0)
+      const totalProductos = data.length
+      
+      return { 
+        data: {
+          totalIngresos,
+          totalProductos
+        }, 
+        error: null 
+      }
+    } catch (error) {
+      console.error('Error al obtener estadísticas del mercadillo:', error)
       return { data: null, error }
     }
   }

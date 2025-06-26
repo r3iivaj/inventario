@@ -34,14 +34,22 @@ export const gastosService = {
     }
   },
 
-  // Obtener gastos por mercadillo
-  async getByMercadillo(idMercadillo) {
+  // Obtener gastos por mercadillo (solo activos)
+  async getByMercadillo(idMercadillo, incluirInactivos = false) {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('gastos')
         .select('*')
         .eq('id_mercadillo', idMercadillo)
-        .order('fecha', { ascending: false })
+      
+      // Por defecto solo traer gastos activos
+      if (!incluirInactivos) {
+        query = query.neq('activo', false)
+      }
+      
+      query = query.order('fecha', { ascending: false })
+      
+      const { data, error } = await query
       
       if (error) throw error
       return { data, error: null }
@@ -86,7 +94,7 @@ export const gastosService = {
     }
   },
 
-  // Eliminar gasto
+  // Eliminar gasto (físico)
   async delete(id) {
     try {
       const { error } = await supabase
@@ -99,6 +107,48 @@ export const gastosService = {
     } catch (error) {
       console.error('Error al eliminar gasto:', error)
       return { error }
+    }
+  },
+
+  // Eliminar gasto (lógico)
+  async deleteLogico(id) {
+    try {
+      const { data, error } = await supabase
+        .from('gastos')
+        .update({ 
+          activo: false,
+          fecha_eliminacion: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return { data, error: null }
+    } catch (error) {
+      console.error('Error al eliminar gasto lógicamente:', error)
+      return { data: null, error }
+    }
+  },
+
+  // Restaurar gasto eliminado lógicamente
+  async restaurar(id) {
+    try {
+      const { data, error } = await supabase
+        .from('gastos')
+        .update({ 
+          activo: true,
+          fecha_eliminacion: null
+        })
+        .eq('id', id)
+        .select()
+        .single()
+      
+      if (error) throw error
+      return { data, error: null }
+    } catch (error) {
+      console.error('Error al restaurar gasto:', error)
+      return { data: null, error }
     }
   },
 
@@ -120,13 +170,14 @@ export const gastosService = {
     }
   },
 
-  // Obtener total de gastos por mercadillo
+  // Obtener total de gastos por mercadillo (solo activos)
   async getTotalByMercadillo(idMercadillo) {
     try {
       const { data, error } = await supabase
         .from('gastos')
         .select('cantidad')
         .eq('id_mercadillo', idMercadillo)
+        .neq('activo', false) // Solo gastos activos
       
       if (error) throw error
       

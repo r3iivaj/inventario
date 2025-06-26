@@ -96,14 +96,52 @@
   font-weight: 500;
 }
 
+.precio-controls, .stock-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-precio-control, .btn-stock-control {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 35px;
+}
+
+.btn-precio-control:hover, .btn-stock-control:hover {
+  background: #45a049;
+  transform: translateY(-1px);
+}
+
+.btn-precio-control:disabled, .btn-stock-control:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-precio-control:active, .btn-stock-control:active {
+  transform: translateY(0);
+}
+
+.precio-valor, .stock-valor {
+  font-weight: 600;
+  margin: 0 4px;
+  color: #2c3e50;
+}
+
 .precio-valor {
-  font-size: 1.1rem;
-  font-weight: 700;
   color: #27ae60;
+  font-size: 1.1rem;
 }
 
 .stock-valor {
-  font-weight: 600;
   color: #2c3e50;
   background: #e9ecef;
   padding: 0.25rem 0.75rem;
