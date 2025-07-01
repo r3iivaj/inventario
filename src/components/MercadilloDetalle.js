@@ -420,79 +420,112 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
   const beneficio = totalIngresos - totalGastos
 
   if (cargando) {
-    return <div className="mercadillo-detalle-loading">Cargando detalles...</div>
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
+        <p className="text-lg font-medium text-gray-600 dark:text-gray-400">Cargando detalles...</p>
+      </div>
+    )
   }
 
   return (
-    <div className="mercadillo-detalle">
-      <div className="mercadillo-detalle-header">
-        <button className="btn-volver" onClick={onVolver}>
-          ← Volver
-        </button>
-        <div className="mercadillo-titulo">
-          <div className="titulo-info">
-            <h2>{mercadilloActual.nombre}</h2>
-            <p className="mercadillo-fecha">📅 {formatearFecha(mercadilloActual.fecha)}</p>
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <button 
+            className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+            onClick={onVolver}
+          >
+            ← Volver
+          </button>
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">
+              {mercadilloActual.nombre}
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 flex items-center gap-1 mt-1">
+              📅 {formatearFecha(mercadilloActual.fecha)}
+            </p>
           </div>
-          <div className="controles-estado">
-            <span className={`estado-badge ${obtenerEstadoInfo(mercadilloActual.estado, mercadilloActual.stock_actualizado).clase}`}>
-              {obtenerEstadoInfo(mercadilloActual.estado, mercadilloActual.stock_actualizado).emoji} {obtenerEstadoInfo(mercadilloActual.estado, mercadilloActual.stock_actualizado).texto}
-            </span>
-            
-            {mercadilloActual.estado === 'planificado' && (
-              <button 
-                className="btn-estado iniciar"
-                onClick={() => cambiarEstado('activo')}
-              >
-                ▶️ Iniciar
-              </button>
-            )}
-            
-            {mercadilloActual.estado === 'activo' && (
-              <button 
-                className="btn-estado finalizar"
-                onClick={() => cambiarEstado('finalizado')}
-              >
-                ⏹️ Finalizar
-              </button>
-            )}
-            
-            {puedeActualizarStock() && (
-              <button 
-                className="btn-estado actualizar-stock"
-                onClick={previsualizarStock}
-              >
-                📦 Actualizar Stock
-              </button>
-            )}
-          </div>
+        </div>
+        
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
+            obtenerEstadoInfo(mercadilloActual.estado, mercadilloActual.stock_actualizado).clase === 'planificado' ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300' :
+            obtenerEstadoInfo(mercadilloActual.estado, mercadilloActual.stock_actualizado).clase === 'activo' ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300' :
+            obtenerEstadoInfo(mercadilloActual.estado, mercadilloActual.stock_actualizado).clase === 'finalizado-completo' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
+            obtenerEstadoInfo(mercadilloActual.estado, mercadilloActual.stock_actualizado).clase === 'finalizado-pendiente' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300' :
+            'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300'
+          }`}>
+            {obtenerEstadoInfo(mercadilloActual.estado, mercadilloActual.stock_actualizado).emoji} {obtenerEstadoInfo(mercadilloActual.estado, mercadilloActual.stock_actualizado).texto}
+          </span>
+          
+          {mercadilloActual.estado === 'planificado' && (
+            <button 
+              className="bg-green-600 hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-800 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+              onClick={() => cambiarEstado('activo')}
+            >
+              ▶️ Iniciar
+            </button>
+          )}
+          
+          {mercadilloActual.estado === 'activo' && (
+            <button 
+              className="bg-orange-600 hover:bg-orange-700 dark:bg-orange-700 dark:hover:bg-orange-800 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+              onClick={() => cambiarEstado('finalizado')}
+            >
+              ⏹️ Finalizar
+            </button>
+          )}
+          
+          {puedeActualizarStock() && (
+            <button 
+              className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+              onClick={previsualizarStock}
+            >
+              📦 Actualizar Stock
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="resumen-financiero">
-        <div className="resumen-card ingresos">
-          <h3>💰 Ingresos</h3>
-          <span className="resumen-valor">{formatearPrecio(totalIngresos)}</span>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-2">
+            💰 Ingresos
+          </h3>
+          <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+            {formatearPrecio(totalIngresos)}
+          </span>
         </div>
-        <div className="resumen-card gastos">
-          <h3>💸 Gastos</h3>
-          <span className="resumen-valor">{formatearPrecio(totalGastos)}</span>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-2">
+            💸 Gastos
+          </h3>
+          <span className="text-2xl font-bold text-red-600 dark:text-red-400">
+            {formatearPrecio(totalGastos)}
+          </span>
         </div>
-        <div className={`resumen-card beneficio ${beneficio >= 0 ? 'positivo' : 'negativo'}`}>
-          <h3>📊 Beneficio</h3>
-          <span className="resumen-valor">{formatearPrecio(beneficio)}</span>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2 flex items-center gap-2">
+            📊 Beneficio
+          </h3>
+          <span className={`text-2xl font-bold ${beneficio >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+            {formatearPrecio(beneficio)}
+          </span>
         </div>
       </div>
 
-      <div className="mercadillo-content">
-        <div className="seccion-ingresos">
-          <div className="seccion-header">
-            <h3>💰 Ingresos</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+              💰 Ingresos
+            </h3>
           </div>
 
           {/* Buscador de productos */}
-          <div className="buscador-productos">
-            <div className="input-busqueda">
+          <div className="mb-6">
+            <div className="relative">
               <input
                 type="text"
                 placeholder="Buscar productos para añadir..."
@@ -501,22 +534,32 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
                   setBusquedaProducto(e.target.value)
                   buscarProductos(e.target.value)
                 }}
+                className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500"
               />
-              <span className="icono-busqueda">🔍</span>
+              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-lg">
+                🔍
+              </span>
             </div>
 
             {/* Resultados de búsqueda */}
             {productosEncontrados.length > 0 && (
-              <div className="resultados-busqueda">
+              <div className="mt-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg max-h-60 overflow-y-auto">
                 {productosEncontrados.map(producto => (
-                  <div key={producto.id} className="resultado-producto">
-                    <div className="producto-info">
-                      <span className="producto-nombre">{producto.nombre}</span>
-                      <span className="producto-precio">{formatearPrecio(producto.precio_venta)}</span>
-                      <span className="producto-categoria">{producto.categoria}</span>
+                  <div key={producto.id} className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-600 last:border-b-0">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                        {producto.nombre}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {formatearPrecio(producto.precio_venta)} • {producto.categoria}
+                      </p>
                     </div>
                     <button 
-                      className="btn-agregar-producto"
+                      className={`ml-3 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                        productosEnMercadillo[producto.id] 
+                          ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' 
+                          : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800'
+                      }`}
                       onClick={() => agregarProductoAMercadillo(producto)}
                       disabled={productosEnMercadillo[producto.id]}
                     >
@@ -529,60 +572,75 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
           </div>
 
           {/* Lista de productos en el mercadillo */}
-          <div className="lista-items">
+          <div className="space-y-3">
             {ingresos.length === 0 ? (
-              <p className="no-items">No hay ingresos registrados</p>
+              <div className="text-center py-8">
+                <div className="text-4xl mb-2">📦</div>
+                <p className="text-gray-600 dark:text-gray-400">No hay ingresos registrados</p>
+              </div>
             ) : (
               ingresos.map(ingreso => (
-                <div key={ingreso.id} className="item-card ingreso-producto">
-                  <div className="producto-detalle">
-                    <div className="producto-nombre-categoria">
-                      <h4>{ingreso.producto?.nombre || 'Producto desconocido'}</h4>
-                      <span className="categoria">{ingreso.producto?.categoria}</span>
+                <div key={ingreso.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                        {ingreso.producto?.nombre || 'Producto desconocido'}
+                      </h4>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {ingreso.producto?.categoria}
+                        </span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {formatearPrecio(ingreso.precio_unitario)} c/u
+                        </span>
+                      </div>
                     </div>
-                    <div className="precio-unitario">
-                      {formatearPrecio(ingreso.precio_unitario)} c/u
+                    
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center bg-white dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500">
+                        <button 
+                          className="px-3 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-500 rounded-l-lg transition-colors"
+                          onClick={() => actualizarCantidadProducto(ingreso.id_producto, ingreso.cantidad - 1)}
+                        >
+                          -
+                        </button>
+                        <span className="px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-100 border-x border-gray-200 dark:border-gray-500">
+                          {ingreso.cantidad}
+                        </span>
+                        <button 
+                          className="px-3 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-500 rounded-r-lg transition-colors"
+                          onClick={() => actualizarCantidadProducto(ingreso.id_producto, ingreso.cantidad + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <span className="font-semibold text-green-600 dark:text-green-400 min-w-0">
+                        {formatearPrecio(ingreso.total_vendido)}
+                      </span>
+
+                      <button 
+                        className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        onClick={() => eliminarProductoDelMercadillo(ingreso.id_producto)}
+                        title="Eliminar producto"
+                      >
+                        🗑️
+                      </button>
                     </div>
                   </div>
-                  
-                  <div className="controles-cantidad">
-                    <button 
-                      className="btn-cantidad"
-                      onClick={() => actualizarCantidadProducto(ingreso.id_producto, ingreso.cantidad - 1)}
-                    >
-                      -
-                    </button>
-                    <span className="cantidad-actual">{ingreso.cantidad}</span>
-                    <button 
-                      className="btn-cantidad"
-                      onClick={() => actualizarCantidadProducto(ingreso.id_producto, ingreso.cantidad + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  <div className="total-producto">
-                    {formatearPrecio(ingreso.total_vendido)}
-                  </div>
-
-                  <button 
-                    className="btn-eliminar-producto"
-                    onClick={() => eliminarProductoDelMercadillo(ingreso.id_producto)}
-                    title="Eliminar producto"
-                  >
-                    🗑️
-                  </button>
                 </div>
               ))
             )}
           </div>
         </div>
 
-        <div className="seccion-gastos">
-          <div className="seccion-header">
-            <h3>💸 Gastos</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+              💸 Gastos
+            </h3>
             <button 
-              className="btn-agregar"
+              className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
               onClick={() => setMostrarFormGasto(true)}
             >
               + Nuevo Gasto
@@ -590,119 +648,148 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
           </div>
 
           {mostrarFormGasto && (
-            <div className="form-overlay">
-              <div className="form-modal">
-                <h4>Nuevo Gasto</h4>
-                <div className="form-group">
-                  <label>Descripción:</label>
-                  <input 
-                    type="text"
-                    value={nuevoGasto.descripcion}
-                    onChange={(e) => setNuevoGasto({...nuevoGasto, descripcion: e.target.value})}
-                    placeholder="Ej: Gasolina, Mesa, Comida..."
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Cantidad:</label>
-                  <input 
-                    type="number"
-                    step="0.01"
-                    value={nuevoGasto.cantidad}
-                    onChange={(e) => setNuevoGasto({...nuevoGasto, cantidad: e.target.value})}
-                  />
-                </div>
-                <div className="form-actions">
-                  <button 
-                    className="btn-cancelar"
-                    onClick={() => setMostrarFormGasto(false)}
-                  >
-                    Cancelar
-                  </button>
-                  <button 
-                    className="btn-guardar"
-                    onClick={agregarGasto}
-                    disabled={!nuevoGasto.descripcion || !nuevoGasto.cantidad}
-                  >
-                    Guardar
-                  </button>
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-700">
+                <div className="p-6">
+                  <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Nuevo Gasto</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Descripción:
+                      </label>
+                      <input 
+                        type="text"
+                        value={nuevoGasto.descripcion}
+                        onChange={(e) => setNuevoGasto({...nuevoGasto, descripcion: e.target.value})}
+                        placeholder="Ej: Gasolina, Mesa, Comida..."
+                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Cantidad:
+                      </label>
+                      <input 
+                        type="number"
+                        step="0.01"
+                        value={nuevoGasto.cantidad}
+                        onChange={(e) => setNuevoGasto({...nuevoGasto, cantidad: e.target.value})}
+                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-3 mt-6">
+                    <button 
+                      className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors"
+                      onClick={() => setMostrarFormGasto(false)}
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      className="flex-1 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={agregarGasto}
+                      disabled={!nuevoGasto.descripcion || !nuevoGasto.cantidad}
+                    >
+                      Guardar
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
           {mostrarFormEditarGasto && gastoEditando && (
-            <div className="form-overlay">
-              <div className="form-modal">
-                <h4>Editar Gasto</h4>
-                <div className="form-group">
-                  <label>Descripción:</label>
-                  <input 
-                    type="text"
-                    value={gastoEditando.descripcion}
-                    onChange={(e) => setGastoEditando({...gastoEditando, descripcion: e.target.value})}
-                    placeholder="Ej: Gasolina, Mesa, Comida..."
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Cantidad:</label>
-                  <input 
-                    type="number"
-                    step="0.01"
-                    value={gastoEditando.cantidad}
-                    onChange={(e) => setGastoEditando({...gastoEditando, cantidad: e.target.value})}
-                  />
-                </div>
-                <div className="form-actions">
-                  <button 
-                    className="btn-cancelar"
-                    onClick={() => {
-                      setMostrarFormEditarGasto(false)
-                      setGastoEditando(null)
-                    }}
-                  >
-                    Cancelar
-                  </button>
-                  <button 
-                    className="btn-guardar"
-                    onClick={guardarEdicionGasto}
-                    disabled={!gastoEditando.descripcion || !gastoEditando.cantidad}
-                  >
-                    Actualizar
-                  </button>
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full border border-gray-200 dark:border-gray-700">
+                <div className="p-6">
+                  <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Editar Gasto</h4>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Descripción:
+                      </label>
+                      <input 
+                        type="text"
+                        value={gastoEditando.descripcion}
+                        onChange={(e) => setGastoEditando({...gastoEditando, descripcion: e.target.value})}
+                        placeholder="Ej: Gasolina, Mesa, Comida..."
+                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Cantidad:
+                      </label>
+                      <input 
+                        type="number"
+                        step="0.01"
+                        value={gastoEditando.cantidad}
+                        onChange={(e) => setGastoEditando({...gastoEditando, cantidad: e.target.value})}
+                        className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-3 mt-6">
+                    <button 
+                      className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors"
+                      onClick={() => {
+                        setMostrarFormEditarGasto(false)
+                        setGastoEditando(null)
+                      }}
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      className="flex-1 bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={guardarEdicionGasto}
+                      disabled={!gastoEditando.descripcion || !gastoEditando.cantidad}
+                    >
+                      Actualizar
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           )}
 
-                      <div className="lista-items">
+          <div className="space-y-3">
             {gastos.filter(g => g.activo !== false).length === 0 ? (
-              <p className="no-items">No hay gastos registrados</p>
+              <div className="text-center py-8">
+                <div className="text-4xl mb-2">💸</div>
+                <p className="text-gray-600 dark:text-gray-400">No hay gastos registrados</p>
+              </div>
             ) : (
               gastos.filter(g => g.activo !== false).map(gasto => (
-                <div key={gasto.id} className="item-card gasto">
-                  <div className="item-info">
-                    <h4>{gasto.descripcion}</h4>
-                    <p>{formatearFecha(gasto.fecha)}</p>
-                  </div>
-                  <div className="item-actions">
-                    <div className="item-total">
-                      {formatearPrecio(gasto.cantidad)}
+                <div key={gasto.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                        {gasto.descripcion}
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        {formatearFecha(gasto.fecha)}
+                      </p>
                     </div>
-                    <div className="gasto-botones">
-                      <button 
-                        className="btn-editar-gasto"
-                        onClick={() => editarGasto(gasto)}
-                        title="Editar gasto"
-                      >
-                        ✏️
-                      </button>
-                      <button 
-                        className="btn-eliminar-gasto"
-                        onClick={() => eliminarGasto(gasto.id)}
-                        title="Eliminar gasto"
-                      >
-                        🗑️
-                      </button>
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold text-red-600 dark:text-red-400">
+                        {formatearPrecio(gasto.cantidad)}
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <button 
+                          className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                          onClick={() => editarGasto(gasto)}
+                          title="Editar gasto"
+                        >
+                          ✏️
+                        </button>
+                        <button 
+                          className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          onClick={() => eliminarGasto(gasto.id)}
+                          title="Eliminar gasto"
+                        >
+                          🗑️
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -714,58 +801,85 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
 
       {/* Modal de Actualización de Stock */}
       {mostrarModalStock && (
-        <div className="form-overlay">
-          <div className="modal-stock">
-            <h3>📦 Actualizar Stock del Inventario</h3>
-            <p>Se actualizará el stock de los siguientes productos basado en las ventas registradas:</p>
-            
-            <div className="preview-stock">
-              {previewStock.length === 0 ? (
-                <p className="no-ventas">No hay ventas registradas para actualizar stock</p>
-              ) : (
-                <div className="tabla-preview">
-                  <div className="header-tabla">
-                    <span>Producto</span>
-                    <span>Stock Actual</span>
-                    <span>Vendido</span>
-                    <span>Nuevo Stock</span>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
+            <div className="p-6">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4 flex items-center gap-2">
+                📦 Actualizar Stock del Inventario
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                Se actualizará el stock de los siguientes productos basado en las ventas registradas:
+              </p>
+              
+              <div className="mb-6">
+                {previewStock.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="text-4xl mb-2">📦</div>
+                    <p className="text-gray-600 dark:text-gray-400">No hay ventas registradas para actualizar stock</p>
                   </div>
-                  {previewStock.map((item, index) => (
-                    <div key={index} className="fila-preview">
-                      <span className="producto-nombre">{item.producto}</span>
-                      <span className="stock-actual">{item.stockActual}</span>
-                      <span className="vendido">-{item.vendido}</span>
-                      <span className={`nuevo-stock ${item.nuevoStock === 0 ? 'agotado' : ''}`}>
-                        {item.nuevoStock}
-                        {item.nuevoStock === 0 && ' (Agotado)'}
-                      </span>
+                ) : (
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg overflow-hidden">
+                    <div className="grid grid-cols-4 gap-4 p-4 bg-gray-100 dark:bg-gray-600 font-medium text-gray-800 dark:text-gray-200 text-sm">
+                      <span>Producto</span>
+                      <span>Stock Actual</span>
+                      <span>Vendido</span>
+                      <span>Nuevo Stock</span>
                     </div>
-                  ))}
+                    {previewStock.map((item, index) => (
+                      <div key={index} className="grid grid-cols-4 gap-4 p-4 border-t border-gray-200 dark:border-gray-600">
+                        <span className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {item.producto}
+                        </span>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {item.stockActual}
+                        </span>
+                        <span className="text-red-600 dark:text-red-400">
+                          -{item.vendido}
+                        </span>
+                        <span className={`font-medium ${
+                          item.nuevoStock === 0 
+                            ? 'text-red-600 dark:text-red-400' 
+                            : 'text-green-600 dark:text-green-400'
+                        }`}>
+                          {item.nuevoStock}
+                          {item.nuevoStock === 0 && ' (Agotado)'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3 mb-6">
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                  <p className="text-yellow-700 dark:text-yellow-400 text-sm">
+                    ⚠️ <strong>Atención:</strong> Esta acción no se puede deshacer. El stock se reducirá permanentemente.
+                  </p>
                 </div>
-              )}
-            </div>
+                {mercadilloActual.stock_actualizado && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                    <p className="text-red-700 dark:text-red-400 text-sm">
+                      ❌ <strong>Error:</strong> El stock de este mercadillo ya fue actualizado anteriormente.
+                    </p>
+                  </div>
+                )}
+              </div>
 
-            <div className="advertencia-stock">
-              <p>⚠️ <strong>Atención:</strong> Esta acción no se puede deshacer. El stock se reducirá permanentemente.</p>
-              {mercadilloActual.stock_actualizado && (
-                <p>❌ <strong>Error:</strong> El stock de este mercadillo ya fue actualizado anteriormente.</p>
-              )}
-            </div>
-
-            <div className="form-actions">
-              <button 
-                className="btn-cancelar"
-                onClick={() => setMostrarModalStock(false)}
-              >
-                Cancelar
-              </button>
-              <button 
-                className="btn-confirmar-stock"
-                onClick={confirmarActualizacionStock}
-                disabled={actualizandoStock || previewStock.length === 0 || mercadilloActual.stock_actualizado}
-              >
-                {actualizandoStock ? 'Actualizando...' : 'Confirmar Actualización'}
-              </button>
+              <div className="flex gap-3">
+                <button 
+                  className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-4 rounded-lg transition-colors"
+                  onClick={() => setMostrarModalStock(false)}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-medium py-3 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  onClick={confirmarActualizacionStock}
+                  disabled={actualizandoStock || previewStock.length === 0 || mercadilloActual.stock_actualizado}
+                >
+                  {actualizandoStock ? 'Actualizando...' : 'Confirmar Actualización'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

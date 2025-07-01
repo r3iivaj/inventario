@@ -5,6 +5,7 @@ import Filtros from './Filtros'
 import MercadilloList from './MercadilloList'
 import MercadilloDetalle from './MercadilloDetalle'
 import MercadilloForm from './MercadilloForm'
+import ThemeToggle from './ThemeToggle'
 import './InventarioApp.css'
 
 const InventarioApp = () => {
@@ -130,17 +131,17 @@ const InventarioApp = () => {
               {loading && (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mb-4"></div>
-                  <p className="text-lg font-medium text-gray-600">Cargando productos...</p>
+                  <p className="text-lg font-medium text-gray-600 dark:text-gray-400">Cargando productos...</p>
                 </div>
               )}
 
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
                   <div className="text-4xl mb-4">❌</div>
-                  <p className="text-red-700 font-medium mb-4">{error}</p>
+                  <p className="text-red-700 dark:text-red-400 font-medium mb-4">{error}</p>
                   <button 
                     onClick={cargarProductos} 
-                    className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                    className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 text-white font-medium py-2 px-4 rounded-lg transition-colors"
                   >
                     Reintentar
                   </button>
@@ -160,8 +161,8 @@ const InventarioApp = () => {
                   ) : (
                     <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
                       <div className="text-6xl mb-4">📦</div>
-                      <p className="text-lg font-medium text-gray-600 mb-2">Producto no encontrado</p>
-                      <p className="text-gray-500">Intenta ajustar los filtros de búsqueda o el término de búsqueda</p>
+                      <p className="text-lg font-medium text-gray-600 dark:text-gray-400 mb-2">Producto no encontrado</p>
+                      <p className="text-gray-500 dark:text-gray-500">Intenta ajustar los filtros de búsqueda o el término de búsqueda</p>
                     </div>
                   )}
                 </div>
@@ -173,26 +174,31 @@ const InventarioApp = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col lg:grid lg:grid-cols-[250px_1fr] lg:grid-rows-[auto_1fr]">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col lg:grid lg:grid-cols-[250px_1fr] lg:grid-rows-[auto_1fr]">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 lg:col-span-2 px-4 py-3 lg:px-6 lg:py-4">
-        <div className="flex items-center justify-between lg:justify-start">
+      <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 lg:col-span-2 px-4 py-3 lg:px-6 lg:py-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="text-2xl lg:text-3xl">📦</div>
-            <h1 className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-800 truncate">
+            <h1 className="text-lg lg:text-xl xl:text-2xl font-bold text-gray-800 dark:text-gray-100 truncate">
               INVENTARIO ZRUNK3D
             </h1>
           </div>
           
-          {/* Mobile menu button */}
-          <button 
-            className="lg:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+          <div className="flex items-center space-x-3">
+            {/* Theme toggle button */}
+            <ThemeToggle />
+            
+            {/* Mobile menu button */}
+            <button 
+              className="lg:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -200,13 +206,13 @@ const InventarioApp = () => {
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setMobileMenuOpen(false)} />
-          <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white shadow-xl">
-            <div className="p-4 border-b border-gray-200">
+          <aside className="fixed left-0 top-0 bottom-0 w-64 bg-white dark:bg-gray-800 shadow-xl">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
-                <h2 className="font-bold text-gray-800">Menú</h2>
+                <h2 className="font-bold text-gray-800 dark:text-gray-100">Menú</h2>
                 <button 
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-2 rounded-md text-gray-600 hover:bg-gray-100"
+                  className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -215,15 +221,15 @@ const InventarioApp = () => {
               </div>
             </div>
             <nav className="p-4 space-y-2">
-              <div className="flex items-center space-x-3 p-3 rounded-lg text-gray-600 hover:bg-gray-100 cursor-pointer">
+              <div className="flex items-center space-x-3 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
                 <span className="text-xl">📊</span>
                 <span className="font-medium">MÉTRICAS</span>
               </div>
               <div 
                 className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
                   vistaActual === 'productos' 
-                    ? 'bg-blue-100 text-blue-700 font-medium' 
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium' 
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
                 onClick={() => {
                   handleNavegacion('productos')
@@ -233,15 +239,15 @@ const InventarioApp = () => {
                 <span className="text-xl">🏠</span>
                 <span className="font-medium">Home</span>
               </div>
-              <div className="flex items-center space-x-3 p-3 rounded-lg text-gray-600 hover:bg-gray-100 cursor-pointer">
+              <div className="flex items-center space-x-3 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
                 <span className="text-xl">📦</span>
                 <span className="font-medium">PRODUCTOS</span>
               </div>
               <div 
                 className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
                   vistaActual.includes('mercadillo') 
-                    ? 'bg-blue-100 text-blue-700 font-medium' 
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium' 
+                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 }`}
                 onClick={() => {
                   handleNavegacion('mercadillos')
@@ -257,32 +263,32 @@ const InventarioApp = () => {
       )}
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block bg-white border-r border-gray-200">
+      <aside className="hidden lg:block bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
         <nav className="p-4 space-y-2">
-          <div className="flex items-center space-x-3 p-3 rounded-lg text-gray-600 hover:bg-gray-100 cursor-pointer transition-colors">
+          <div className="flex items-center space-x-3 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors">
             <span className="text-xl">📊</span>
             <span className="font-medium">MÉTRICAS</span>
           </div>
           <div 
             className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
               vistaActual === 'productos' 
-                ? 'bg-blue-100 text-blue-700 font-medium' 
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium' 
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
             onClick={() => handleNavegacion('productos')}
           >
             <span className="text-xl">🏠</span>
             <span className="font-medium">Home</span>
           </div>
-          <div className="flex items-center space-x-3 p-3 rounded-lg text-gray-600 hover:bg-gray-100 cursor-pointer transition-colors">
+          <div className="flex items-center space-x-3 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors">
             <span className="text-xl">📦</span>
             <span className="font-medium">PRODUCTOS</span>
           </div>
           <div 
             className={`flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-colors ${
               vistaActual.includes('mercadillo') 
-                ? 'bg-blue-100 text-blue-700 font-medium' 
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium' 
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
             onClick={() => handleNavegacion('mercadillos')}
           >

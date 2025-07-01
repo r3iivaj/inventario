@@ -93,18 +93,26 @@ const MercadilloForm = ({ onVolver, onMercadilloCreado }) => {
   }
 
   return (
-    <div className="mercadillo-form">
-      <div className="mercadillo-form-header">
-        <button className="btn-volver" onClick={onVolver}>
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <button 
+          className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+          onClick={onVolver}
+        >
           ← Volver
         </button>
-        <h2>📍 Nuevo Mercadillo</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+          <span>📍</span>
+          <span>Nuevo Mercadillo</span>
+        </h2>
       </div>
 
-      <div className="form-container">
-        <form onSubmit={manejarSubmit} className="mercadillo-form-content">
-          <div className="form-group">
-            <label htmlFor="nombre">Nombre del Mercadillo *</label>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-6">
+        <form onSubmit={manejarSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Nombre del Mercadillo *
+            </label>
             <input
               type="text"
               id="nombre"
@@ -113,11 +121,14 @@ const MercadilloForm = ({ onVolver, onMercadilloCreado }) => {
               onChange={manejarCambio}
               placeholder="Ej: Mercadillo Plaza Mayor"
               required
+              className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500"
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="fecha">Fecha</label>
+          <div>
+            <label htmlFor="fecha" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Fecha
+            </label>
             <input
               type="date"
               id="fecha"
@@ -125,21 +136,28 @@ const MercadilloForm = ({ onVolver, onMercadilloCreado }) => {
               value={formulario.fecha}
               onChange={manejarCambio}
               required
+              className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
             />
             {esMercadilloHistorico() && (
-              <div className="fecha-info historico">
-                ℹ️ Este mercadillo se creará como <strong>finalizado</strong> (fecha anterior a hoy)
+              <div className="mt-2 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+                <p className="text-orange-700 dark:text-orange-400 text-sm">
+                  ℹ️ Este mercadillo se creará como <strong>finalizado</strong> (fecha anterior a hoy)
+                </p>
               </div>
             )}
             {!esMercadilloHistorico() && (
-              <div className="fecha-info">
-                ℹ️ Este mercadillo se creará como <strong>planificado</strong>
+              <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <p className="text-blue-700 dark:text-blue-400 text-sm">
+                  ℹ️ Este mercadillo se creará como <strong>planificado</strong>
+                </p>
               </div>
             )}
           </div>
 
-          <div className="form-group">
-            <label htmlFor="descripcion">Descripción</label>
+          <div>
+            <label htmlFor="descripcion" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Descripción
+            </label>
             <textarea
               id="descripcion"
               name="descripcion"
@@ -147,23 +165,25 @@ const MercadilloForm = ({ onVolver, onMercadilloCreado }) => {
               onChange={manejarCambio}
               placeholder="Descripción opcional del mercadillo..."
               rows="4"
+              className="w-full px-4 py-3 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500 resize-none"
             />
           </div>
 
-          <div className="form-group">
-            <div className="checkbox-group">
+          <div>
+            <div className="flex items-start space-x-3">
               <input
                 type="checkbox"
                 id="actualizacion_automatica"
                 checked={formulario.modo_actualizacion === 'automatico'}
                 onChange={manejarCambio}
                 disabled={esMercadilloHistorico()}
+                className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded disabled:opacity-50"
               />
-              <label htmlFor="actualizacion_automatica" className="checkbox-label">
-                <span className="checkbox-text">
+              <label htmlFor="actualizacion_automatica" className="flex-1">
+                <span className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Actualizar stock automáticamente al finalizar
                 </span>
-                <span className="checkbox-description">
+                <span className="block text-xs text-gray-500 dark:text-gray-400 mt-1">
                   {esMercadilloHistorico() 
                     ? 'No disponible para mercadillos históricos'
                     : 'El stock se actualizará automáticamente cuando finalices el mercadillo'
@@ -174,33 +194,45 @@ const MercadilloForm = ({ onVolver, onMercadilloCreado }) => {
           </div>
 
           {esMercadilloHistorico() && (
-            <div className="mercadillo-historico-info">
-              <div className="info-card">
-                <h4>📚 Mercadillo Histórico</h4>
-                <p>
-                  Al crear un mercadillo con fecha anterior, podrás:
-                </p>
-                <ul>
-                  <li>✅ Registrar ventas y gastos del evento pasado</li>
-                  <li>✅ Mantener un historial completo de mercadillos</li>
-                  <li>✅ Actualizar stock manualmente si es necesario</li>
-                  <li>⚠️ La actualización automática no está disponible</li>
-                </ul>
-              </div>
+            <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+              <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
+                📚 Mercadillo Histórico
+              </h4>
+              <p className="text-gray-600 dark:text-gray-400 mb-3">
+                Al crear un mercadillo con fecha anterior, podrás:
+              </p>
+              <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <li className="flex items-center gap-2">
+                  <span>✅</span>
+                  <span>Registrar ventas y gastos del evento pasado</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>✅</span>
+                  <span>Mantener un historial completo de mercadillos</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>✅</span>
+                  <span>Actualizar stock manualmente si es necesario</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <span>⚠️</span>
+                  <span>La actualización automática no está disponible</span>
+                </li>
+              </ul>
             </div>
           )}
 
-          <div className="form-actions">
+          <div className="flex gap-4 pt-4 border-t border-gray-100 dark:border-gray-700">
             <button 
               type="button" 
-              className="btn-cancelar"
+              className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium py-3 px-6 rounded-lg transition-colors"
               onClick={onVolver}
             >
               Cancelar
             </button>
             <button 
               type="submit" 
-              className="btn-crear"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-medium py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={guardando || !formulario.nombre.trim()}
             >
               {guardando ? 'Creando...' : 'Crear Mercadillo'}
