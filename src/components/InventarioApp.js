@@ -5,13 +5,22 @@ import Filtros from './Filtros'
 import MercadilloList from './MercadilloList'
 import MercadilloDetalle from './MercadilloDetalle'
 import MercadilloForm from './MercadilloForm'
+import ProductoForm from './ProductoForm'
 import ThemeToggle from './ThemeToggle'
+import AdminPanel from './AdminPanel'
+import { useAuth } from '../contexts/AuthContext'
 import './InventarioApp.css'
 
 const InventarioApp = () => {
+  const { user, signOut } = useAuth()
   const [vistaActual, setVistaActual] = useState('productos') // 'productos', 'mercadillos', 'mercadillo-detalle', 'mercadillo-form'
   const [mercadilloSeleccionado, setMercadilloSeleccionado] = useState(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showAdminPanel, setShowAdminPanel] = useState(false)
+  const [showProductoForm, setShowProductoForm] = useState(false)
+  const [productoEditando, setProductoEditando] = useState(null)
+  const [showProductoDetalle, setShowProductoDetalle] = useState(false)
+  const [productoVisualizando, setProductoVisualizando] = useState(null)
   const [productos, setProductos] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -59,6 +68,43 @@ const InventarioApp = () => {
         producto.id === productoActualizado.id ? productoActualizado : producto
       )
     )
+  }
+
+  const handleCrearProducto = () => {
+    setProductoEditando(null)
+    setShowProductoForm(true)
+  }
+
+  const handleEditarProducto = (producto) => {
+    setProductoEditando(producto)
+    setShowProductoForm(true)
+  }
+
+  const handleProductoCreado = (nuevoProducto) => {
+    setProductos(prevProductos => [nuevoProducto, ...prevProductos])
+    setShowProductoForm(false)
+    setProductoEditando(null)
+  }
+
+  const handleProductoEditado = (productoEditado) => {
+    handleProductoActualizado(productoEditado)
+    setShowProductoForm(false)
+    setProductoEditando(null)
+  }
+
+  const handleCerrarFormulario = () => {
+    setShowProductoForm(false)
+    setProductoEditando(null)
+  }
+
+  const handleVerProducto = (producto) => {
+    setProductoVisualizando(producto)
+    setShowProductoDetalle(true)
+  }
+
+  const handleCerrarDetalle = () => {
+    setShowProductoDetalle(false)
+    setProductoVisualizando(null)
   }
 
   const handleNavegacion = (vista) => {
@@ -120,6 +166,20 @@ const InventarioApp = () => {
       default:
         return (
           <>
+            {/* Header con botón Añadir Producto */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 sm:mb-0">
+                Inventario de Productos
+              </h2>
+              <button
+                onClick={handleCrearProducto}
+                className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm sm:text-base"
+              >
+                <span className="text-lg">+</span>
+                <span>Añadir Producto</span>
+              </button>
+            </div>
+
             {/* Filtros */}
             <Filtros 
               filtros={filtros}
@@ -156,6 +216,8 @@ const InventarioApp = () => {
                         key={producto.id}
                         producto={producto}
                         onProductoActualizado={handleProductoActualizado}
+                        onEditarProducto={handleEditarProducto}
+                        onVerProducto={handleVerProducto}
                       />
                     ))
                   ) : (
@@ -186,8 +248,47 @@ const InventarioApp = () => {
           </div>
           
           <div className="flex items-center space-x-3">
+            {/* User info - Mobile */}
+            <div className="lg:hidden flex items-center space-x-2">
+              {user?.user_metadata?.avatar_url && (
+                <img 
+                  src={user.user_metadata.avatar_url} 
+                  alt="Avatar" 
+                  className="w-6 h-6 rounded-full"
+                />
+              )}
+              <div className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-24">
+                {user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}
+              </div>
+            </div>
+            
             {/* Theme toggle button */}
             <ThemeToggle />
+            
+            {/* Admin button */}
+            <button 
+              onClick={() => setShowAdminPanel(true)}
+              className="hidden lg:flex items-center space-x-2 px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              title="Panel de administración"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="text-sm">Admin</span>
+            </button>
+
+            {/* Logout button */}
+            <button 
+              onClick={signOut}
+              className="hidden lg:flex items-center space-x-2 px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              title="Cerrar sesión"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span className="text-sm">Salir</span>
+            </button>
             
             {/* Mobile menu button */}
             <button 
@@ -257,14 +358,57 @@ const InventarioApp = () => {
                 <span className="text-xl">🛒</span>
                 <span className="font-medium">MERCADILLO</span>
               </div>
+              
+              {/* Logout button - Mobile */}
+              <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex items-center space-x-2 px-3 pb-2">
+                  {user?.user_metadata?.avatar_url && (
+                    <img 
+                      src={user.user_metadata.avatar_url} 
+                      alt="Avatar" 
+                      className="w-6 h-6 rounded-full"
+                    />
+                  )}
+                  <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {user?.user_metadata?.full_name || user?.email}
+                  </div>
+                </div>
+                <button 
+                  onClick={() => {
+                    signOut()
+                    setMobileMenuOpen(false)
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span className="font-medium">Cerrar sesión</span>
+                </button>
+                
+                {/* Admin button - Mobile */}
+                <button 
+                  onClick={() => {
+                    setShowAdminPanel(true)
+                    setMobileMenuOpen(false)
+                  }}
+                  className="w-full flex items-center space-x-3 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  <span className="font-medium">Panel Admin</span>
+                </button>
+              </div>
             </nav>
           </aside>
         </div>
       )}
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-        <nav className="p-4 space-y-2">
+      <aside className="hidden lg:block bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 relative">
+        <nav className="p-4 space-y-2 pb-20">
           <div className="flex items-center space-x-3 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors">
             <span className="text-xl">📊</span>
             <span className="font-medium">MÉTRICAS</span>
@@ -296,12 +440,191 @@ const InventarioApp = () => {
             <span className="font-medium">MERCADILLO</span>
           </div>
         </nav>
+        
+        {/* User info section - Desktop */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+          <div className="flex items-center space-x-2 mb-2">
+            {user?.user_metadata?.avatar_url && (
+              <img 
+                src={user.user_metadata.avatar_url} 
+                alt="Avatar" 
+                className="w-6 h-6 rounded-full"
+              />
+            )}
+            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+              {user?.user_metadata?.full_name || user?.email}
+            </div>
+          </div>
+          <button 
+            onClick={signOut}
+            className="w-full flex items-center space-x-2 p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span>Cerrar sesión</span>
+          </button>
+        </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto p-4 lg:p-6">
         {renderContenido()}
       </main>
+
+      {/* Admin Panel Modal */}
+      {showAdminPanel && (
+        <AdminPanel onClose={() => setShowAdminPanel(false)} />
+      )}
+
+      {/* Producto Form Modal */}
+      {showProductoForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <ProductoForm
+              producto={productoEditando}
+              isEditing={!!productoEditando}
+              onSubmit={productoEditando ? handleProductoEditado : handleProductoCreado}
+              onCancel={handleCerrarFormulario}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Producto Detail Modal */}
+      {showProductoDetalle && productoVisualizando && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                  Detalles del Producto
+                </h2>
+                <button
+                  onClick={handleCerrarDetalle}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-2xl"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Imagen */}
+              <div className="text-center mb-6">
+                <div className="w-32 h-32 mx-auto bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl flex items-center justify-center text-4xl shadow-sm mb-4">
+                  {productoVisualizando.imagen_url ? (
+                    <img 
+                      src={productoVisualizando.imagen_url} 
+                      alt={productoVisualizando.nombre}
+                      className="w-full h-full object-cover rounded-xl"
+                      onError={(e) => {
+                        e.target.style.display = 'none'
+                        e.target.nextSibling.style.display = 'flex'
+                      }}
+                    />
+                  ) : null}
+                  <span className={`${productoVisualizando.imagen_url ? 'hidden' : 'block'}`}>
+                    📦
+                  </span>
+                </div>
+              </div>
+
+              {/* Información */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    {productoVisualizando.nombre}
+                  </h3>
+                  {productoVisualizando.descripcion && (
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      {productoVisualizando.descripcion}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Categoría</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100">
+                      {productoVisualizando.categoria}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-medium">Stock</p>
+                    <p className={`font-semibold ${
+                      productoVisualizando.cantidad_stock <= 5 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-gray-100'
+                    }`}>
+                      {productoVisualizando.cantidad_stock} unidades
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Precio de Venta</p>
+                    <p className="font-semibold text-green-600 dark:text-green-400 text-lg">
+                      {productoVisualizando.precio_venta?.toFixed(2)}€
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Coste Real</p>
+                    <p className="font-semibold text-gray-900 dark:text-gray-100 text-lg">
+                      {productoVisualizando.coste_real?.toFixed(2)}€
+                    </p>
+                  </div>
+                </div>
+
+                {/* Beneficio y Margen */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
+                    <p className="text-sm text-green-600 dark:text-green-400 font-medium">Beneficio</p>
+                    <p className="font-bold text-green-700 dark:text-green-300 text-xl">
+                      {productoVisualizando.precio_venta && productoVisualizando.coste_real
+                        ? (productoVisualizando.precio_venta - productoVisualizando.coste_real).toFixed(2)
+                        : '0.00'
+                      }€
+                    </p>
+                  </div>
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+                    <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Margen</p>
+                    <p className="font-bold text-blue-700 dark:text-blue-300 text-xl">
+                      {productoVisualizando.precio_venta && productoVisualizando.coste_real
+                        ? (((productoVisualizando.precio_venta - productoVisualizando.coste_real) / productoVisualizando.coste_real) * 100).toFixed(1)
+                        : '0.0'
+                      }%
+                    </p>
+                  </div>
+                </div>
+
+                {/* Fecha de creación */}
+                {productoVisualizando.created_at && (
+                  <div className="text-center pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Creado el {new Date(productoVisualizando.created_at).toLocaleDateString('es-ES')}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Acciones */}
+              <div className="flex gap-2 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => {
+                    handleCerrarDetalle()
+                    handleEditarProducto(productoVisualizando)
+                  }}
+                  className="flex-1 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-medium py-2 px-4 rounded-lg transition-colors"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={handleCerrarDetalle}
+                  className="flex-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 font-medium py-2 px-4 rounded-lg transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

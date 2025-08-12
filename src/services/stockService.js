@@ -59,7 +59,7 @@ export const stockService = {
           const nuevoStock = Math.max(0, producto.cantidad_stock - info.totalVendido)
           
           // Actualizar stock
-          const { data: productoActualizado, error: errorActualizacion } = await productosService.update(idProducto, {
+          const { error: errorActualizacion } = await productosService.update(idProducto, {
             cantidad_stock: nuevoStock
           })
 

@@ -11,7 +11,7 @@ const MercadilloList = ({ onSeleccionarMercadillo, onCrearMercadillo }) => {
 
   useEffect(() => {
     cargarMercadillos()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const cargarMercadillos = async () => {
     setCargando(true)

@@ -1,4 +1,13 @@
 import { supabase } from '../config/supabase'
+import { imageService } from './imageService'
+
+// Función para normalizar texto y eliminar tildes
+const normalizarTexto = (texto) => {
+  return texto.toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+}
 
 export const productosService = {
   // Obtener todos los productos
@@ -44,10 +53,8 @@ export const productosService = {
         query = query.eq('categoria', filtros.categoria)
       }
 
-      // Filtro por búsqueda
-      if (filtros.busqueda) {
-        query = query.or(`nombre.ilike.%${filtros.busqueda}%,descripcion.ilike.%${filtros.busqueda}%`)
-      }
+      // Filtro por búsqueda - si hay búsqueda, la aplicaremos en el cliente
+      const searchTerm = filtros.busqueda ? normalizarTexto(filtros.busqueda) : null
 
       // Ordenamiento
       switch (filtros.orden) {
@@ -69,7 +76,18 @@ export const productosService = {
       const { data, error } = await query
       
       if (error) throw error
-      return { data, error: null }
+      
+      // Si hay término de búsqueda, filtrar en el lado del cliente para ignorar tildes
+      let filteredData = data
+      if (searchTerm && data) {
+        filteredData = data.filter(producto => {
+          const nombreNormalizado = normalizarTexto(producto.nombre || '')
+          const descripcionNormalizada = normalizarTexto(producto.descripcion || '')
+          return nombreNormalizado.includes(searchTerm) || descripcionNormalizada.includes(searchTerm)
+        })
+      }
+      
+      return { data: filteredData, error: null }
     } catch (error) {
       console.error('❌ Error al obtener productos con filtros:', error)
       console.error('Detalles del error:', error.message)
@@ -133,6 +151,24 @@ export const productosService = {
   // Eliminar producto
   async delete(id) {
     try {
+      // Primero obtener el producto para ver si tiene imagen
+      const { data: producto, error: getError } = await supabase
+        .from('productos')
+        .select('imagen_url')
+        .eq('id', id)
+        .single()
+
+      if (getError) throw getError
+
+      // Si tiene imagen del storage, eliminarla
+      if (producto?.imagen_url && imageService.isSupabaseStorageUrl(producto.imagen_url)) {
+        const imagePath = imageService.extractPathFromUrl(producto.imagen_url)
+        if (imagePath) {
+          await imageService.deleteImage(imagePath)
+        }
+      }
+
+      // Eliminar el producto
       const { error } = await supabase
         .from('productos')
         .delete()

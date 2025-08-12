@@ -5,7 +5,7 @@ export interface Producto {
   nombre: string;
   descripcion?: string;
   precio_venta: number;
-  costo_real: number;
+  coste_real: number;
   cantidad_stock: number;
   categoria: string;
   imagen_url?: string;

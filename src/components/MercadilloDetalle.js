@@ -28,7 +28,7 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
 
   useEffect(() => {
     cargarDatos()
-  }, [mercadillo.id])
+  }, [mercadillo.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const cargarDatos = async () => {
     setCargando(true)
