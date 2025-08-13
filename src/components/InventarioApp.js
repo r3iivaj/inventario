@@ -12,7 +12,8 @@ import { useAuth } from '../contexts/AuthContext'
 import './InventarioApp.css'
 
 const InventarioApp = () => {
-  const { user, signOut } = useAuth()
+  // AUTENTICACIÓN DESACTIVADA - No se requiere usuario
+  // const { user, signOut } = useAuth()
   const [vistaActual, setVistaActual] = useState('productos') // 'productos', 'mercadillos', 'mercadillo-detalle', 'mercadillo-form'
   const [mercadilloSeleccionado, setMercadilloSeleccionado] = useState(null)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -265,30 +266,24 @@ const InventarioApp = () => {
             {/* Theme toggle button */}
             <ThemeToggle />
             
-            {/* Admin button */}
+            {/* AUTENTICACIÓN DESACTIVADA - Admin y logout deshabilitados */}
+            {/* 
             <button 
               onClick={() => setShowAdminPanel(true)}
               className="hidden lg:flex items-center space-x-2 px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               title="Panel de administración"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
               <span className="text-sm">Admin</span>
             </button>
 
-            {/* Logout button */}
             <button 
               onClick={signOut}
               className="hidden lg:flex items-center space-x-2 px-3 py-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               title="Cerrar sesión"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
               <span className="text-sm">Salir</span>
             </button>
+            */}
             
             {/* Mobile menu button */}
             <button 
@@ -362,44 +357,30 @@ const InventarioApp = () => {
               {/* Logout button - Mobile */}
               <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex items-center space-x-2 px-3 pb-2">
-                  {user?.user_metadata?.avatar_url && (
-                    <img 
-                      src={user.user_metadata.avatar_url} 
-                      alt="Avatar" 
-                      className="w-6 h-6 rounded-full"
-                    />
-                  )}
+                  <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                    <span className="text-xs">🔓</span>
+                  </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                    {user?.user_metadata?.full_name || user?.email}
+                    Acceso libre habilitado
                   </div>
                 </div>
-                <button 
-                  onClick={() => {
-                    signOut()
-                    setMobileMenuOpen(false)
-                  }}
-                  className="w-full flex items-center space-x-3 p-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                >
+                {/* LOGOUT DESACTIVADO */}
+                <div className="w-full flex items-center space-x-3 p-3 rounded-lg text-gray-400 dark:text-gray-600">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
-                  <span className="font-medium">Cerrar sesión</span>
-                </button>
+                  <span className="font-medium">Acceso libre habilitado</span>
+                </div>
                 
                 {/* Admin button - Mobile */}
-                <button 
-                  onClick={() => {
-                    setShowAdminPanel(true)
-                    setMobileMenuOpen(false)
-                  }}
-                  className="w-full flex items-center space-x-3 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                >
+                {/* ADMIN PANEL DESACTIVADO */}
+                <div className="w-full flex items-center space-x-3 p-3 rounded-lg text-gray-400 dark:text-gray-600">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <span className="font-medium">Panel Admin</span>
-                </button>
+                  <span className="font-medium">Panel Admin (Desactivado)</span>
+                </div>
               </div>
             </nav>
           </aside>
@@ -441,29 +422,11 @@ const InventarioApp = () => {
           </div>
         </nav>
         
-        {/* User info section - Desktop */}
+        {/* AUTENTICACIÓN DESACTIVADA - Sin información de usuario ni logout */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <div className="flex items-center space-x-2 mb-2">
-            {user?.user_metadata?.avatar_url && (
-              <img 
-                src={user.user_metadata.avatar_url} 
-                alt="Avatar" 
-                className="w-6 h-6 rounded-full"
-              />
-            )}
-            <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-              {user?.user_metadata?.full_name || user?.email}
-            </div>
+          <div className="text-center text-xs text-gray-500 dark:text-gray-400">
+            💡 Acceso libre habilitado
           </div>
-          <button 
-            onClick={signOut}
-            className="w-full flex items-center space-x-2 p-2 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            <span>Cerrar sesión</span>
-          </button>
         </div>
       </aside>
 
@@ -472,10 +435,10 @@ const InventarioApp = () => {
         {renderContenido()}
       </main>
 
-      {/* Admin Panel Modal */}
-      {showAdminPanel && (
+      {/* ADMIN PANEL DESACTIVADO */}
+      {/* {showAdminPanel && (
         <AdminPanel onClose={() => setShowAdminPanel(false)} />
-      )}
+      )} */}
 
       {/* Producto Form Modal */}
       {showProductoForm && (
