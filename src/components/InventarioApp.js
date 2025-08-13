@@ -250,7 +250,7 @@ const InventarioApp = () => {
           
           <div className="flex items-center space-x-3">
             {/* User info - Mobile */}
-            <div className="lg:hidden flex items-center space-x-2">
+            {/* <div className="lg:hidden flex items-center space-x-2">
               {user?.user_metadata?.avatar_url && (
                 <img 
                   src={user.user_metadata.avatar_url} 
@@ -261,7 +261,7 @@ const InventarioApp = () => {
               <div className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-24">
                 {user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}
               </div>
-            </div>
+            </div> */}
             
             {/* Theme toggle button */}
             <ThemeToggle />
