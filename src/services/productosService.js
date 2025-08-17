@@ -67,6 +67,12 @@ export const productosService = {
         case 'precio_desc':
           query = query.order('precio_venta', { ascending: false })
           break
+        case 'stock_asc':
+          query = query.order('cantidad_stock', { ascending: true })
+          break
+        case 'stock_desc':
+          query = query.order('cantidad_stock', { ascending: false })
+          break
         case 'fecha':
         default:
           query = query.order('created_at', { ascending: false })

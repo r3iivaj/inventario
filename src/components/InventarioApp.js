@@ -69,6 +69,13 @@ const InventarioApp = () => {
         producto.id === productoActualizado.id ? productoActualizado : producto
       )
     )
+    // Devolver foco a la búsqueda
+    setTimeout(() => {
+      const searchInput = document.querySelector('input[placeholder="Buscar productos..."]')
+      if (searchInput) {
+        searchInput.focus()
+      }
+    }, 100)
   }
 
   const handleCrearProducto = () => {
@@ -85,17 +92,41 @@ const InventarioApp = () => {
     setProductos(prevProductos => [nuevoProducto, ...prevProductos])
     setShowProductoForm(false)
     setProductoEditando(null)
+    
+    // Devolver foco a la búsqueda
+    setTimeout(() => {
+      const searchInput = document.querySelector('input[placeholder="Buscar productos..."]')
+      if (searchInput) {
+        searchInput.focus()
+      }
+    }, 100)
   }
 
   const handleProductoEditado = (productoEditado) => {
     handleProductoActualizado(productoEditado)
     setShowProductoForm(false)
     setProductoEditando(null)
+    
+    // Devolver foco a la búsqueda
+    setTimeout(() => {
+      const searchInput = document.querySelector('input[placeholder="Buscar productos..."]')
+      if (searchInput) {
+        searchInput.focus()
+      }
+    }, 100)
   }
 
   const handleCerrarFormulario = () => {
     setShowProductoForm(false)
     setProductoEditando(null)
+    
+    // Devolver foco a la búsqueda
+    setTimeout(() => {
+      const searchInput = document.querySelector('input[placeholder="Buscar productos..."]')
+      if (searchInput) {
+        searchInput.focus()
+      }
+    }, 100)
   }
 
   const handleVerProducto = (producto) => {
@@ -103,9 +134,80 @@ const InventarioApp = () => {
     setShowProductoDetalle(true)
   }
 
+  const handleCopiarProducto = async (producto) => {
+    const nombreCopia = `${producto.nombre} - copia`
+    const productoCopia = {
+      ...producto,
+      nombre: nombreCopia,
+      id: undefined,
+      created_at: undefined,
+      updated_at: undefined
+    }
+    
+    try {
+      const { data, error } = await productosService.create(productoCopia)
+      if (error) {
+        console.error('Error al copiar producto:', error)
+        alert('Error al copiar el producto')
+      } else {
+        // Actualizar la lista de productos
+        await cargarProductos()
+        alert(`Producto copiado como: "${nombreCopia}"`)
+        
+        // Devolver foco a la búsqueda
+        setTimeout(() => {
+          const searchInput = document.querySelector('input[placeholder="Buscar productos..."]')
+          if (searchInput) {
+            searchInput.focus()
+          }
+        }, 100)
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error al copiar el producto')
+    }
+  }
+
+  const handleEliminarProducto = async (producto) => {
+    setLoading(true)
+    
+    try {
+      const { error } = await productosService.delete(producto.id)
+      if (error) {
+        console.error('Error al eliminar producto:', error)
+        alert('Error al eliminar el producto')
+      } else {
+        // Actualizar la lista de productos
+        await cargarProductos()
+        alert(`Producto "${producto.nombre}" eliminado correctamente`)
+        
+        // Devolver foco a la búsqueda
+        setTimeout(() => {
+          const searchInput = document.querySelector('input[placeholder="Buscar productos..."]')
+          if (searchInput) {
+            searchInput.focus()
+          }
+        }, 100)
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      alert('Error al eliminar el producto')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleCerrarDetalle = () => {
     setShowProductoDetalle(false)
     setProductoVisualizando(null)
+    
+    // Devolver foco a la búsqueda
+    setTimeout(() => {
+      const searchInput = document.querySelector('input[placeholder="Buscar productos..."]')
+      if (searchInput) {
+        searchInput.focus()
+      }
+    }, 100)
   }
 
   const handleNavegacion = (vista) => {
@@ -219,6 +321,8 @@ const InventarioApp = () => {
                         onProductoActualizado={handleProductoActualizado}
                         onEditarProducto={handleEditarProducto}
                         onVerProducto={handleVerProducto}
+                        onCopiarProducto={handleCopiarProducto}
+                        onEliminarProducto={handleEliminarProducto}
                       />
                     ))
                   ) : (

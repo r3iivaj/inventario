@@ -17,6 +17,8 @@ const ProductoForm = ({ producto, onSubmit, onCancel, isEditing = false }) => {
   const [error, setError] = useState(null)
   const [imageFile, setImageFile] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
+  const [mostrarNuevaCategoria, setMostrarNuevaCategoria] = useState(false)
+  const [nuevaCategoria, setNuevaCategoria] = useState('')
 
   useEffect(() => {
     if (isEditing && producto) {
@@ -37,9 +39,32 @@ const ProductoForm = ({ producto, onSubmit, onCancel, isEditing = false }) => {
 
   const handleChange = (e) => {
     const { name, value, type } = e.target
+    
+    // Si cambia la categoría y selecciona "nueva", mostrar el input
+    if (name === 'categoria' && value === 'nueva_categoria') {
+      setMostrarNuevaCategoria(true)
+      setFormData(prev => ({
+        ...prev,
+        [name]: ''
+      }))
+      return
+    } else if (name === 'categoria') {
+      setMostrarNuevaCategoria(false)
+      setNuevaCategoria('')
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: type === 'number' ? parseFloat(value) || 0 : value
+    }))
+  }
+
+  const handleNuevaCategoriaChange = (e) => {
+    const value = e.target.value
+    setNuevaCategoria(value)
+    setFormData(prev => ({
+      ...prev,
+      categoria: value
     }))
   }
 
@@ -270,26 +295,61 @@ const ProductoForm = ({ producto, onSubmit, onCancel, isEditing = false }) => {
             <label className="block text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Categoría *
             </label>
-            <div className="relative">
-              <select
-                name="categoria"
-                value={formData.categoria}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none cursor-pointer"
-              >
-                {Object.keys(CategoriaProducto).map((key) => (
-                  <option key={key} value={CategoriaProducto[key]}>
-                    {CategoriaProductoLabels[key]}
+            
+            {!mostrarNuevaCategoria ? (
+              <div className="relative">
+                <select
+                  name="categoria"
+                  value={formData.categoria}
+                  onChange={handleChange}
+                  required
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none cursor-pointer"
+                >
+                  {Object.keys(CategoriaProducto).map((key) => (
+                    <option key={key} value={CategoriaProducto[key]}>
+                      {CategoriaProductoLabels[key]}
+                    </option>
+                  ))}
+                  <option value="nueva_categoria" className="bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium">
+                    ➕ Crear nueva categoría...
                   </option>
-                ))}
-              </select>
-              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                </select>
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={nuevaCategoria}
+                    onChange={handleNuevaCategoriaChange}
+                    placeholder="Nombre de la nueva categoría..."
+                    required
+                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMostrarNuevaCategoria(false)
+                      setNuevaCategoria('')
+                      setFormData(prev => ({ ...prev, categoria: 'varios' }))
+                    }}
+                    className="px-4 py-3 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+                    title="Cancelar nueva categoría"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <p className="text-sm text-blue-600 dark:text-blue-400">
+                  💡 Escribe el nombre de la nueva categoría y se creará automáticamente
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Stock */}

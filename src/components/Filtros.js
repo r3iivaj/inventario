@@ -65,26 +65,28 @@ const Filtros = ({ filtros, onFiltroChange }) => {
                 📦 Todos
               </button>
 
-              {Object.keys(CategoriaProducto).map((key) => (
-                <button 
-                  key={key}
-                  className={`px-3 py-2 rounded-lg text-sm sm:text-base font-medium transition-all ${
-                    filtros.categoria === CategoriaProducto[key]
-                      ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-2 border-blue-200 dark:border-blue-700'
-                      : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border-2 border-transparent'
-                  }`}
-                  onClick={() => handleCategoriaChange(CategoriaProducto[key])}
-                >
-                  {CategoriaProductoLabels[key]}
-                </button>
-              ))}
+              {Object.keys(CategoriaProducto)
+                .sort((a, b) => CategoriaProductoLabels[a].localeCompare(CategoriaProductoLabels[b]))
+                .map((key) => (
+                  <button 
+                    key={key}
+                    className={`px-3 py-2 rounded-lg text-sm sm:text-base font-medium transition-all ${
+                      filtros.categoria === CategoriaProducto[key]
+                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-2 border-blue-200 dark:border-blue-700'
+                        : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border-2 border-transparent'
+                    }`}
+                    onClick={() => handleCategoriaChange(CategoriaProducto[key])}
+                  >
+                    {CategoriaProductoLabels[key]}
+                  </button>
+                ))}
             </div>
           </div>
 
           {/* Filtros de ordenación */}
           <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
             <h3 className="text-base font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">Ordenar por</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
               <button 
                 className={`px-3 py-2 rounded-lg text-sm sm:text-base font-medium transition-all ${
                   filtros.orden === 'nombre'
@@ -127,6 +129,28 @@ const Filtros = ({ filtros, onFiltroChange }) => {
                 onClick={() => handleOrdenChange('fecha')}
               >
                 📅 Recientes
+              </button>
+              
+              <button 
+                className={`px-3 py-2 rounded-lg text-sm sm:text-base font-medium transition-all ${
+                  filtros.orden === 'stock_asc'
+                    ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-2 border-green-200 dark:border-green-700'
+                    : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border-2 border-transparent'
+                }`}
+                onClick={() => handleOrdenChange('stock_asc')}
+              >
+                📦 Stock ↑
+              </button>
+              
+              <button 
+                className={`px-3 py-2 rounded-lg text-sm sm:text-base font-medium transition-all ${
+                  filtros.orden === 'stock_desc'
+                    ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-2 border-green-200 dark:border-green-700'
+                    : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 border-2 border-transparent'
+                }`}
+                onClick={() => handleOrdenChange('stock_desc')}
+              >
+                📦 Stock ↓
               </button>
             </div>
           </div>

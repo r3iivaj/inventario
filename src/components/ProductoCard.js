@@ -2,13 +2,59 @@ import React, { useState } from 'react'
 import './ProductoCard.css'
 import { productosService } from '../services/productosService'
 import { imageService } from '../services/imageService'
+import ConfirmationModal from './ConfirmationModal'
 
-const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVerProducto }) => {
+const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVerProducto, onCopiarProducto, onEliminarProducto }) => {
   const [actualizando, setActualizando] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+  const [showConfirmCopy, setShowConfirmCopy] = useState(false)
 
   const formatearPrecio = (precio) => {
     return `${precio.toFixed(2)}€`
+  }
+
+  const formatearFecha = (fecha) => {
+    if (!fecha) return 'Sin fecha'
+    const fechaObj = new Date(fecha)
+    const ahora = new Date()
+    const diffMs = ahora - fechaObj
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHoras = Math.floor(diffMs / 3600000)
+    const diffDias = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'Ahora mismo'
+    if (diffMins < 60) return `Hace ${diffMins} min`
+    if (diffHoras < 24) return `Hace ${diffHoras}h`
+    if (diffDias < 7) return `Hace ${diffDias} días`
+    
+    return fechaObj.toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
+
+  const handleCopiarProducto = () => {
+    setShowConfirmCopy(true)
+  }
+
+  const confirmarCopia = () => {
+    if (onCopiarProducto) {
+      onCopiarProducto(producto)
+    }
+  }
+
+  const handleEliminarProducto = () => {
+    setShowConfirmDelete(true)
+  }
+
+  const confirmarEliminacion = () => {
+    if (onEliminarProducto) {
+      onEliminarProducto(producto)
+    }
   }
 
   const obtenerImagenPlaceholder = (categoria) => {
@@ -261,19 +307,25 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
             </div>
           </div>
 
-          {/* Beneficio y Margen */}
+          {/* Coste, Beneficio y Margen */}
           {producto.coste_real && producto.coste_real > 0 && (
-            <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg p-3 border border-green-200 dark:border-green-800">
-              <div className="grid grid-cols-2 gap-3">
+            <div className="bg-gradient-to-r from-orange-50 via-green-50 to-blue-50 dark:from-orange-900/20 dark:via-green-900/20 dark:to-blue-900/20 rounded-lg p-3 border border-green-200 dark:border-green-800">
+              <div className="grid grid-cols-3 gap-2">
                 <div className="text-center">
-                  <span className="text-sm text-green-600 dark:text-green-400 font-medium block">Beneficio</span>
-                  <span className="font-bold text-green-700 dark:text-green-300 text-base">
+                  <span className="text-xs text-orange-600 dark:text-orange-400 font-medium block">Coste</span>
+                  <span className="font-bold text-orange-700 dark:text-orange-300 text-sm">
+                    {formatearPrecio(producto.coste_real)}
+                  </span>
+                </div>
+                <div className="text-center">
+                  <span className="text-xs text-green-600 dark:text-green-400 font-medium block">Beneficio</span>
+                  <span className="font-bold text-green-700 dark:text-green-300 text-sm">
                     {formatearPrecio(producto.precio_venta - producto.coste_real)}
                   </span>
                 </div>
                 <div className="text-center">
-                  <span className="text-sm text-blue-600 dark:text-blue-400 font-medium block">Margen</span>
-                  <span className="font-bold text-blue-700 dark:text-blue-300 text-base">
+                  <span className="text-xs text-blue-600 dark:text-blue-400 font-medium block">Margen</span>
+                  <span className="font-bold text-blue-700 dark:text-blue-300 text-sm">
                     {(((producto.precio_venta - producto.coste_real) / producto.coste_real) * 100).toFixed(0)}%
                   </span>
                 </div>
@@ -340,34 +392,105 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
             </div>
           </div>
 
+          {/* Fecha de última actualización */}
+          <div className="text-center py-2 border-t border-gray-100 dark:border-gray-700">
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              Última actualización: {formatearFecha(producto.updated_at || producto.created_at)}
+            </span>
+          </div>
+
           {/* Acciones */}
-          <div className="flex gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-            <button 
-              className="flex-1 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-medium py-2 px-3 rounded-md text-sm transition-colors flex items-center justify-center gap-1"
-              title="Editar producto"
-              onClick={() => onEditarProducto && onEditarProducto(producto)}
-            >
-              <span>✏️</span>
-              <span className="hidden sm:inline">Editar</span>
-            </button>
-            <button 
-              className="flex-1 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 font-medium py-2 px-3 rounded-md text-sm transition-colors flex items-center justify-center gap-1"
-              title="Ver detalles"
-              onClick={() => onVerProducto && onVerProducto(producto)}
-            >
-              <span>👁️</span>
-              <span className="hidden sm:inline">Ver</span>
-            </button>
-            <button 
-              className="flex-1 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-medium py-2 px-3 rounded-md text-sm transition-colors flex items-center justify-center gap-1"
-              title="Eliminar producto"
-            >
-              <span>🗑️</span>
-              <span className="hidden sm:inline">Eliminar</span>
-            </button>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex gap-1">
+              <button 
+                className="flex-1 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 font-medium py-2 px-2 rounded-md text-xs transition-colors flex items-center justify-center gap-1"
+                title="Editar producto"
+                onClick={() => onEditarProducto && onEditarProducto(producto)}
+              >
+                <span>✏️</span>
+                <span className="hidden sm:inline">Editar</span>
+              </button>
+              <button 
+                className="flex-1 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 font-medium py-2 px-2 rounded-md text-xs transition-colors flex items-center justify-center gap-1"
+                title={`Ver detalles - Última actualización: ${formatearFecha(producto.updated_at || producto.created_at)}`}
+                onClick={() => onVerProducto && onVerProducto(producto)}
+              >
+                <span>👁️</span>
+                <span className="hidden sm:inline">Ver</span>
+              </button>
+            </div>
+            <div className="flex gap-1">
+              <button 
+                className="flex-1 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 font-medium py-2 px-2 rounded-md text-xs transition-colors flex items-center justify-center gap-1"
+                title="Copiar producto"
+                onClick={handleCopiarProducto}
+              >
+                <span>📋</span>
+                <span className="hidden sm:inline">Copiar</span>
+              </button>
+              <button 
+                className="flex-1 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-medium py-2 px-2 rounded-md text-xs transition-colors flex items-center justify-center gap-1"
+                title="Eliminar producto"
+                onClick={handleEliminarProducto}
+              >
+                <span>🗑️</span>
+                <span className="hidden sm:inline">Eliminar</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Modal de confirmación para copiar */}
+      <ConfirmationModal
+        isOpen={showConfirmCopy}
+        onClose={() => setShowConfirmCopy(false)}
+        onConfirm={confirmarCopia}
+        type="info"
+        title="Copiar Producto"
+        message={
+          <>
+            ¿Quieres crear una copia de <strong>"{producto.nombre}"</strong>?
+            <br /><br />
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              Se creará un nuevo producto con:
+            </span>
+            <ul className="text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
+              <li>• Nombre: "{producto.nombre} - copia"</li>
+              <li>• Mismos precios y categoría</li>
+              <li>• Mismo stock inicial</li>
+              <li>• Misma imagen (si tiene una)</li>
+            </ul>
+          </>
+        }
+        confirmText="Sí, copiar"
+        cancelText="Cancelar"
+      />
+
+      {/* Modal de confirmación para eliminar */}
+      <ConfirmationModal
+        isOpen={showConfirmDelete}
+        onClose={() => setShowConfirmDelete(false)}
+        onConfirm={confirmarEliminacion}
+        type="danger"
+        title="Eliminar Producto"
+        message={
+          <>
+            ¿Estás seguro de que quieres eliminar <strong>"{producto.nombre}"</strong>?
+            <br /><br />
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              Esta acción no se puede deshacer y eliminará permanentemente:
+            </span>
+            <ul className="text-sm text-gray-600 dark:text-gray-400 mt-2 space-y-1">
+              <li>• El producto y toda su información</li>
+              <li>• Su imagen (si tiene una)</li>
+              <li>• Su historial de stock y precios</li>
+            </ul>
+          </>
+        }
+        confirmText="Sí, eliminar"
+        cancelText="Cancelar"
+      />
     </div>
   )
 }
