@@ -136,12 +136,16 @@ const InventarioApp = () => {
 
   const handleCopiarProducto = async (producto) => {
     const nombreCopia = `${producto.nombre} - copia`
+    
+    // Crear un nuevo objeto con solo las propiedades necesarias
     const productoCopia = {
-      ...producto,
       nombre: nombreCopia,
-      id: undefined,
-      created_at: undefined,
-      updated_at: undefined
+      descripcion: producto.descripcion || '',
+      precio_venta: producto.precio_venta || 0,
+      coste_real: producto.coste_real || 0,
+      cantidad_stock: producto.cantidad_stock || 0,
+      categoria: producto.categoria || 'varios',
+      imagen_url: producto.imagen_url || ''
     }
     
     try {
@@ -152,7 +156,6 @@ const InventarioApp = () => {
       } else {
         // Actualizar la lista de productos
         await cargarProductos()
-        alert(`Producto copiado como: "${nombreCopia}"`)
         
         // Devolver foco a la búsqueda
         setTimeout(() => {
@@ -179,7 +182,6 @@ const InventarioApp = () => {
       } else {
         // Actualizar la lista de productos
         await cargarProductos()
-        alert(`Producto "${producto.nombre}" eliminado correctamente`)
         
         // Devolver foco a la búsqueda
         setTimeout(() => {
@@ -341,9 +343,9 @@ const InventarioApp = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col lg:grid lg:grid-cols-[250px_1fr] lg:grid-rows-[auto_1fr]">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col lg:flex lg:flex-row">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 lg:col-span-2 px-4 py-3 lg:px-6 lg:py-4">
+      <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 w-full fixed top-0 left-0 z-10 px-4 py-3 lg:px-6 lg:py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="text-2xl lg:text-3xl">📦</div>
@@ -492,7 +494,7 @@ const InventarioApp = () => {
       )}
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 relative">
+      <aside className="hidden lg:block bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 sticky top-0 h-screen overflow-y-auto w-64 pt-16">
         <nav className="p-4 space-y-2 pb-20">
           <div className="flex items-center space-x-3 p-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors">
             <span className="text-xl">📊</span>
@@ -527,7 +529,7 @@ const InventarioApp = () => {
         </nav>
         
         {/* AUTENTICACIÓN DESACTIVADA - Sin información de usuario ni logout */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div className="sticky bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
           <div className="text-center text-xs text-gray-500 dark:text-gray-400">
             💡 Acceso libre habilitado
           </div>
@@ -535,7 +537,7 @@ const InventarioApp = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto p-4 lg:p-6">
+      <main className="flex-1 overflow-auto p-4 lg:p-6 mt-16">
         {renderContenido()}
       </main>
 

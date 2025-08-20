@@ -119,9 +119,39 @@ export const productosService = {
     }
   },
 
+  // Verificar si existe un producto con el mismo nombre
+  async existeNombre(nombre) {
+    try {
+      const { data, error } = await supabase
+        .from('productos')
+        .select('id')
+        .ilike('nombre', nombre)
+        .limit(1)
+      
+      if (error) throw error
+      return { existe: data && data.length > 0, error: null }
+    } catch (error) {
+      console.error('Error al verificar nombre de producto:', error)
+      return { existe: false, error }
+    }
+  },
+
   // Crear nuevo producto
   async create(producto) {
     try {
+      // Verificar si ya existe un producto con el mismo nombre
+      const { existe, error: errorVerificacion } = await this.existeNombre(producto.nombre)
+      
+      if (errorVerificacion) {
+        console.error('Error al verificar nombre duplicado:', errorVerificacion)
+      } else if (existe) {
+        return { 
+          data: null, 
+          error: { message: `Ya existe un producto con el nombre "${producto.nombre}". Por favor, usa un nombre diferente.` },
+          nombreDuplicado: true
+        }
+      }
+      
       const { data, error } = await supabase
         .from('productos')
         .insert([producto])
@@ -139,6 +169,31 @@ export const productosService = {
   // Actualizar producto
   async update(id, producto) {
     try {
+      // Si se está cambiando el nombre, verificar que no exista otro producto con ese nombre
+      if (producto.nombre) {
+        // Primero obtenemos el producto actual para comparar
+        const { data: productoActual } = await supabase
+          .from('productos')
+          .select('nombre')
+          .eq('id', id)
+          .single();
+        
+        // Si el nombre es diferente, verificar duplicados
+        if (productoActual && productoActual.nombre !== producto.nombre) {
+          const { existe, error: errorVerificacion } = await this.existeNombre(producto.nombre);
+          
+          if (errorVerificacion) {
+            console.error('Error al verificar nombre duplicado:', errorVerificacion);
+          } else if (existe) {
+            return { 
+              data: null, 
+              error: { message: `Ya existe un producto con el nombre "${producto.nombre}". Por favor, usa un nombre diferente.` },
+              nombreDuplicado: true
+            };
+          }
+        }
+      }
+      
       const { data, error } = await supabase
         .from('productos')
         .update(producto)

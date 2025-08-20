@@ -106,8 +106,18 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
     if (actualizando) return
     
     const nuevoStock = Math.max(0, producto.cantidad_stock + incremento)
-    setActualizando(true)
     
+    // Optimistic update - actualizar localmente primero
+    const productoActualizado = {
+      ...producto,
+      cantidad_stock: nuevoStock
+    }
+    
+    if (onProductoActualizado) {
+      onProductoActualizado(productoActualizado)
+    }
+    
+    // Luego actualizar en el servidor
     try {
       const { data, error } = await productosService.update(producto.id, {
         cantidad_stock: nuevoStock
@@ -116,14 +126,18 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
       if (error) {
         console.error('Error al actualizar stock:', error)
         alert('Error al actualizar el stock')
-      } else if (onProductoActualizado) {
-        onProductoActualizado(data)
+        // Revertir cambio local en caso de error
+        if (onProductoActualizado) {
+          onProductoActualizado(producto)
+        }
       }
     } catch (error) {
       console.error('Error:', error)
       alert('Error al actualizar el stock')
-    } finally {
-      setActualizando(false)
+      // Revertir cambio local en caso de error
+      if (onProductoActualizado) {
+        onProductoActualizado(producto)
+      }
     }
   }
 
@@ -342,7 +356,7 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
               <button 
                 className="bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-medium py-1.5 px-2 rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => actualizarStock(-1)}
-                disabled={actualizando}
+                disabled={producto.cantidad_stock <= 0}
                 title="Reducir 1"
               >
                 -1
@@ -350,7 +364,7 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
               <button 
                 className="bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-medium py-1.5 px-2 rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => actualizarStock(-5)}
-                disabled={actualizando}
+                disabled={producto.cantidad_stock < 5}
                 title="Reducir 5"
               >
                 -5
@@ -358,7 +372,7 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
               <button 
                 className="bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-medium py-1.5 px-2 rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => actualizarStock(-10)}
-                disabled={actualizando}
+                disabled={producto.cantidad_stock < 10}
                 title="Reducir 10"
               >
                 -10
@@ -368,7 +382,6 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
               <button 
                 className="bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 font-medium py-1.5 px-2 rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => actualizarStock(1)}
-                disabled={actualizando}
                 title="Aumentar 1"
               >
                 +1
@@ -376,7 +389,6 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
               <button 
                 className="bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 font-medium py-1.5 px-2 rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => actualizarStock(5)}
-                disabled={actualizando}
                 title="Aumentar 5"
               >
                 +5
@@ -384,7 +396,6 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
               <button 
                 className="bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 font-medium py-1.5 px-2 rounded text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={() => actualizarStock(10)}
-                disabled={actualizando}
                 title="Aumentar 10"
               >
                 +10
@@ -411,12 +422,19 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
                 <span className="hidden sm:inline">Editar</span>
               </button>
               <button 
-                className="flex-1 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 font-medium py-2 px-2 rounded-md text-xs transition-colors flex items-center justify-center gap-1"
+                className="flex-1 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 font-medium py-2 px-2 rounded-md text-xs transition-colors"
                 title={`Ver detalles - Última actualización: ${formatearFecha(producto.updated_at || producto.created_at)}`}
                 onClick={() => onVerProducto && onVerProducto(producto)}
               >
-                <span>👁️</span>
-                <span className="hidden sm:inline">Ver</span>
+                <div className="flex flex-col items-center">
+                  <div className="flex items-center gap-1 mb-1">
+                    <span>👁️</span>
+                    <span className="hidden sm:inline">Ver</span>
+                  </div>
+                  <span className="text-[10px] text-blue-500 dark:text-blue-400 font-normal">
+                    {formatearFecha(producto.updated_at || producto.created_at)}
+                  </span>
+                </div>
               </button>
             </div>
             <div className="flex gap-1">

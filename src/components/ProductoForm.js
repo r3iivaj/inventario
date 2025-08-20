@@ -60,12 +60,16 @@ const ProductoForm = ({ producto, onSubmit, onCancel, isEditing = false }) => {
   }
 
   const handleNuevaCategoriaChange = (e) => {
-    const value = e.target.value
+    const value = e.target.value.trim()
     setNuevaCategoria(value)
-    setFormData(prev => ({
-      ...prev,
-      categoria: value
-    }))
+    
+    // Validar que la nueva categoría sea válida
+    if (value) {
+      setFormData(prev => ({
+        ...prev,
+        categoria: value
+      }))
+    }
   }
 
   const handleImageUpload = (e) => {
@@ -305,11 +309,13 @@ const ProductoForm = ({ producto, onSubmit, onCancel, isEditing = false }) => {
                   required
                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all appearance-none cursor-pointer"
                 >
-                  {Object.keys(CategoriaProducto).map((key) => (
-                    <option key={key} value={CategoriaProducto[key]}>
-                      {CategoriaProductoLabels[key]}
-                    </option>
-                  ))}
+                  {Object.keys(CategoriaProducto)
+                    .sort((a, b) => CategoriaProductoLabels[a].localeCompare(CategoriaProductoLabels[b]))
+                    .map((key) => (
+                      <option key={key} value={CategoriaProducto[key]}>
+                        {CategoriaProductoLabels[key]}
+                      </option>
+                    ))}
                   <option value="nueva_categoria" className="bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium">
                     ➕ Crear nueva categoría...
                   </option>
@@ -329,6 +335,8 @@ const ProductoForm = ({ producto, onSubmit, onCancel, isEditing = false }) => {
                     onChange={handleNuevaCategoriaChange}
                     placeholder="Nombre de la nueva categoría..."
                     required
+                    pattern="[A-Za-z0-9_]+"
+                    title="Solo letras, números y guiones bajos sin espacios"
                     className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                     autoFocus
                   />
@@ -346,7 +354,7 @@ const ProductoForm = ({ producto, onSubmit, onCancel, isEditing = false }) => {
                   </button>
                 </div>
                 <p className="text-sm text-blue-600 dark:text-blue-400">
-                  💡 Escribe el nombre de la nueva categoría y se creará automáticamente
+                  💡 Escribe el nombre de la nueva categoría (solo letras, números y guiones bajos)
                 </p>
               </div>
             )}
