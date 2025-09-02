@@ -60,14 +60,17 @@ const ProductoForm = ({ producto, onSubmit, onCancel, isEditing = false }) => {
   }
 
   const handleNuevaCategoriaChange = (e) => {
-    const value = e.target.value.trim()
+    const value = e.target.value
     setNuevaCategoria(value)
     
     // Validar que la nueva categoría sea válida
     if (value) {
+      // Convertir el valor a un formato válido para la categoría (sin espacios, solo letras, números y guiones bajos)
+      const categoriaValida = value.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase()
+      
       setFormData(prev => ({
         ...prev,
-        categoria: value
+        categoria: categoriaValida
       }))
     }
   }

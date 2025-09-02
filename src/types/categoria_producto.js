@@ -1,33 +1,33 @@
 export const CategoriaProducto = {
-  huevos: 'Huevos',
-  figuras: 'Figuras',
-  fidgets: 'Fidgets',
-  esqueletos: 'Esqueletos',
-  dados: 'Dados',
   animales: 'Animales',
+  dados: 'Dados',
+  esqueletos: 'Esqueletos',
+  fidgets: 'Fidgets',
+  figuras: 'Figuras',
+  huevos: 'Huevos',
   imanes: 'Imanes',
   llaveros: 'Llaveros',
   logos: 'Logos',
   ouchies: 'Ouchies',
+  pack_especial: 'Pack_Especial',
   placas: 'Placas',
   tinys: 'Tinys',
-  varios: 'Varios',
-  pack_especial: 'Pack_Especial'
+  varios: 'Varios'
 }
 
 export const CategoriaProductoLabels = {
-  huevos: 'HUEVOS',
-  figuras: 'FIGURAS',
-  fidgets: 'FIDGETS',
-  esqueletos: 'ESQUELETOS',
-  dados: 'DADOS',
   animales: 'ANIMALES',
+  dados: 'DADOS',
+  esqueletos: 'ESQUELETOS',
+  fidgets: 'FIDGETS',
+  figuras: 'FIGURAS',
+  huevos: 'HUEVOS',
   imanes: 'IMANES',
   llaveros: 'LLAVEROS',
   logos: 'LOGOS',
   ouchies: 'OUCHIES',
+  pack_especial: 'PACK ESPECIAL',
   placas: 'PLACAS',
   tinys: 'TINYS',
-  varios: 'VARIOS',
-  pack_especial: 'PACK ESPECIAL'
+  varios: 'VARIOS'
 } 

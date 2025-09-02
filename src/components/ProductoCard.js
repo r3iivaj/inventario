@@ -107,12 +107,18 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
     
     const nuevoStock = Math.max(0, producto.cantidad_stock + incremento)
     
-    // Optimistic update - actualizar localmente primero
+    // Actualizar localmente primero sin refrescar la pantalla completa
     const productoActualizado = {
       ...producto,
-      cantidad_stock: nuevoStock
+      cantidad_stock: nuevoStock,
+      updated_at: new Date().toISOString() // Actualizar la fecha de modificación
     }
     
+    // Guardamos una referencia al elemento actual en el DOM
+    const currentCard = document.activeElement?.closest('.bg-white.dark\\:bg-gray-800.rounded-xl');
+    const currentScroll = window.scrollY;
+    
+    // Actualizar en el cliente
     if (onProductoActualizado) {
       onProductoActualizado(productoActualizado)
     }
@@ -130,6 +136,15 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
         if (onProductoActualizado) {
           onProductoActualizado(producto)
         }
+      } else {
+        // Restaurar el foco y la posición de desplazamiento
+        setTimeout(() => {
+          if (currentCard) {
+            const button = currentCard.querySelector('button');
+            if (button) button.focus();
+          }
+          window.scrollTo(0, currentScroll);
+        }, 50);
       }
     } catch (error) {
       console.error('Error:', error)
@@ -421,21 +436,27 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
                 <span>✏️</span>
                 <span className="hidden sm:inline">Editar</span>
               </button>
-              <button 
-                className="flex-1 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 font-medium py-2 px-2 rounded-md text-xs transition-colors"
-                title={`Ver detalles - Última actualización: ${formatearFecha(producto.updated_at || producto.created_at)}`}
-                onClick={() => onVerProducto && onVerProducto(producto)}
-              >
-                <div className="flex flex-col items-center">
-                  <div className="flex items-center gap-1 mb-1">
-                    <span>👁️</span>
-                    <span className="hidden sm:inline">Ver</span>
+                              <button 
+                  className="flex-1 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 font-medium py-2 px-2 rounded-md text-xs transition-colors"
+                  title={`Ver detalles - Última actualización: ${formatearFecha(producto.updated_at || producto.created_at)}`}
+                  onClick={() => onVerProducto && onVerProducto(producto)}
+                >
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center gap-1">
+                      <span>👁️</span>
+                      <span className="hidden sm:inline">Ver</span>
+                    </div>
+                    <span className="text-[10px] text-blue-500 dark:text-blue-400 font-normal mt-1">
+                      {new Date(producto.updated_at || producto.created_at).toLocaleString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
                   </div>
-                  <span className="text-[10px] text-blue-500 dark:text-blue-400 font-normal">
-                    {formatearFecha(producto.updated_at || producto.created_at)}
-                  </span>
-                </div>
-              </button>
+                </button>
             </div>
             <div className="flex gap-1">
               <button 
