@@ -66,7 +66,9 @@ const ProductoForm = ({ producto, onSubmit, onCancel, isEditing = false }) => {
     // Validar que la nueva categoría sea válida
     if (value) {
       // Convertir el valor a un formato válido para la categoría (sin espacios, solo letras, números y guiones bajos)
-      const categoriaValida = value.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase()
+      // Permitimos espacios que se convierten en guiones bajos
+      const categoriaValida = value.replace(/[^a-zA-Z0-9_ ]/g, '')
+        .replace(/\s+/g, '_')
       
       setFormData(prev => ({
         ...prev,
@@ -122,7 +124,13 @@ const ProductoForm = ({ producto, onSubmit, onCancel, isEditing = false }) => {
     try {
       let dataToSubmit = { ...formData }
       
-      // Ya no necesitamos compatibilidad - usamos coste_real directamente
+      // Asegurarse de que la categoría tenga el formato correcto (primera letra mayúscula)
+      if (dataToSubmit.categoria && typeof dataToSubmit.categoria === 'string') {
+        // Formatear la categoría correctamente: primera letra mayúscula, resto minúsculas
+        const categoriaFormateada = dataToSubmit.categoria.charAt(0).toUpperCase() + 
+                                   dataToSubmit.categoria.slice(1).toLowerCase();
+        dataToSubmit.categoria = categoriaFormateada;
+      }
       
       console.log('Datos a enviar antes de imagen:', dataToSubmit)
       console.log('Modo edición:', isEditing, 'ID producto:', producto?.id)
@@ -338,10 +346,10 @@ const ProductoForm = ({ producto, onSubmit, onCancel, isEditing = false }) => {
                     onChange={handleNuevaCategoriaChange}
                     placeholder="Nombre de la nueva categoría..."
                     required
-                    pattern="[A-Za-z0-9_]+"
-                    title="Solo letras, números y guiones bajos sin espacios"
+                    title="Letras, números, espacios y guiones bajos"
                     className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                     autoFocus
+                    maxLength={30}
                   />
                   <button
                     type="button"
@@ -357,7 +365,10 @@ const ProductoForm = ({ producto, onSubmit, onCancel, isEditing = false }) => {
                   </button>
                 </div>
                 <p className="text-sm text-blue-600 dark:text-blue-400">
-                  💡 Escribe el nombre de la nueva categoría (solo letras, números y guiones bajos)
+                  💡 Escribe el nombre de la nueva categoría. Puedes usar letras, números, espacios y guiones bajos.
+                </p>
+                <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                  ✅ Los espacios se convertirán automáticamente en guiones bajos y la primera letra será mayúscula.
                 </p>
               </div>
             )}
