@@ -23,9 +23,7 @@ export const stockService = {
       // 3. Obtener todas las ventas del mercadillo
       const { data: ventas, error: errorVentas } = await productosMercadilloService.getByMercadilloConDetalles(idMercadillo)
       if (errorVentas) {
-        // En modo demo, usar datos de prueba
-        console.log('⚠️ Modo demo: usando datos de prueba para actualización de stock')
-        return await stockService.actualizarStockDemo(idMercadillo)
+        throw new Error('Error al obtener ventas del mercadillo: ' + (errorVentas.message || 'Error desconocido'))
       }
 
       if (!ventas || ventas.length === 0) {
@@ -110,20 +108,6 @@ export const stockService = {
     }
   },
 
-  // Actualización de stock en modo demo
-  async actualizarStockDemo(idMercadillo) {
-    console.log('🎭 Simulando actualización de stock en modo demo')
-    
-    // Simular delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // Sin datos de prueba - solo trabajar con datos reales
-    return {
-      exito: false,
-      error: 'No hay ventas registradas para actualizar stock',
-      modoDemo: true
-    }
-  },
 
   // Obtener resumen de lo que se actualizaría (preview)
   async previsualizarActualizacionStock(idMercadillo) {
@@ -132,11 +116,11 @@ export const stockService = {
       const { data: ventas, error: errorVentas } = await productosMercadilloService.getByMercadilloConDetalles(idMercadillo)
       
       if (errorVentas) {
-        // Modo demo - sin datos de prueba
+        console.error('Error al obtener ventas:', errorVentas)
         return {
           preview: [],
           totalProductos: 0,
-          modoDemo: true
+          error: errorVentas.message || 'Error al obtener ventas'
         }
       }
 

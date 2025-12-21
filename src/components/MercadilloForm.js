@@ -73,17 +73,12 @@ const MercadilloForm = ({ onVolver, onMercadilloCreado }) => {
       const { data, error } = await mercadillosService.create(mercadillo)
       
       if (error) {
-        // Modo demo: crear mercadillo local
-        const mercadilloDemo = {
-          id: Date.now(),
-          ...mercadillo
-        }
-        console.log('Mercadillo creado en modo demo:', mercadilloDemo)
-        if (onMercadilloCreado) onMercadilloCreado(mercadilloDemo)
-      } else {
-        console.log('Mercadillo creado exitosamente:', data)
-        if (onMercadilloCreado) onMercadilloCreado(data)
+        console.error('Error al crear mercadillo:', error)
+        alert('Error al crear el mercadillo: ' + (error.message || 'Error desconocido'))
+        return
       }
+      
+      if (onMercadilloCreado) onMercadilloCreado(data)
     } catch (error) {
       console.error('Error al crear mercadillo:', error)
       alert('Error al crear el mercadillo')

@@ -20,42 +20,7 @@ const MercadilloList = ({ onSeleccionarMercadillo, onCrearMercadillo }) => {
       
       if (error) {
         console.error('Error al cargar mercadillos:', error)
-        // Datos de prueba para modo demo
-        const mercadillosPrueba = [
-          {
-            id: 1,
-            nombre: 'Mercadillo Plaza Mayor',
-            fecha: '2024-01-15',
-            estado: 'finalizado',
-            stock_actualizado: false,
-            modo_actualizacion: 'manual',
-            total_ventas: 0,
-            descripcion: 'Mercadillo de fin de semana'
-          },
-          {
-            id: 2,
-            nombre: 'Feria del Carmen',
-            fecha: '2024-01-08',
-            estado: 'finalizado',
-            stock_actualizado: true,
-            modo_actualizacion: 'automatico',
-            total_ventas: 0,
-            descripcion: 'Feria anual del barrio'
-          },
-          {
-            id: 3,
-            nombre: 'Mercado Navideño',
-            fecha: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            estado: 'planificado',
-            stock_actualizado: false,
-            modo_actualizacion: 'automatico',
-            total_ventas: 0,
-            descripcion: 'Mercado especial de Navidad'
-          }
-        ]
-        setMercadillos(mercadillosPrueba)
-        // Cargar estadísticas de prueba
-        await cargarEstadisticasPrueba(mercadillosPrueba)
+        setMercadillos([])
       } else {
         setMercadillos(data || [])
         await cargarEstadisticas(data || [])
@@ -92,18 +57,6 @@ const MercadilloList = ({ onSeleccionarMercadillo, onCrearMercadillo }) => {
     setEstadisticas(stats)
   }
 
-  const cargarEstadisticasPrueba = async (listaMercadillos) => {
-    const stats = {}
-    listaMercadillos.forEach(mercadillo => {
-      // Sin datos simulados - solo estadísticas reales
-      stats[mercadillo.id] = {
-        ingresos: 0,
-        gastos: 0,
-        beneficio: 0
-      }
-    })
-    setEstadisticas(stats)
-  }
 
   const formatearFecha = (fecha) => {
     return new Date(fecha).toLocaleDateString('es-ES', {

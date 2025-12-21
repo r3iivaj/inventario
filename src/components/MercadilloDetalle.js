@@ -25,6 +25,9 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
   const [previewStock, setPreviewStock] = useState([])
   const [actualizandoStock, setActualizandoStock] = useState(false)
   const [mercadilloActual, setMercadilloActual] = useState(mercadillo)
+  const [modoVistaProductos, setModoVistaProductos] = useState('busqueda') // 'busqueda' o 'grid'
+  const [cantidadAgregar, setCantidadAgregar] = useState({}) // {productoId: cantidad}
+  const [editandoCantidad, setEditandoCantidad] = useState({}) // {ingresoId: cantidad temporal}
 
   // Actualizar mercadilloActual cuando cambia el prop mercadillo
   useEffect(() => {
@@ -45,7 +48,7 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
       ])
 
       if (gastosResult.error) {
-        // Sin datos de prueba - solo gastos reales de la base de datos
+        console.error('Error al cargar gastos:', gastosResult.error)
         setGastos([])
       } else {
         setGastos(gastosResult.data || [])
@@ -97,15 +100,12 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
       const { data, error } = await gastosService.create(gasto)
       
       if (error) {
-        // Modo demo: agregar localmente
-        const gastoDemo = {
-          id: Date.now(),
-          ...gasto
-        }
-        setGastos([...gastos, gastoDemo])
-      } else {
-        setGastos([...gastos, data])
+        console.error('Error al crear gasto:', error)
+        alert('Error al crear el gasto: ' + (error.message || 'Error desconocido'))
+        return
       }
+      
+      setGastos([...gastos, data])
 
       setNuevoGasto({ descripcion: '', cantidad: '' })
       setMostrarFormGasto(false)
@@ -135,15 +135,12 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
       const { data, error } = await gastosService.update(gastoEditando.id, gastoActualizado)
       
       if (error) {
-        // Modo demo: actualizar localmente
-        setGastos(gastos.map(g => 
-          g.id === gastoEditando.id 
-            ? { ...g, ...gastoActualizado }
-            : g
-        ))
-      } else {
-        setGastos(gastos.map(g => g.id === gastoEditando.id ? data : g))
+        console.error('Error al actualizar gasto:', error)
+        alert('Error al actualizar el gasto: ' + (error.message || 'Error desconocido'))
+        return
       }
+      
+      setGastos(gastos.map(g => g.id === gastoEditando.id ? data : g))
 
       setGastoEditando(null)
       setMostrarFormEditarGasto(false)
@@ -163,16 +160,13 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
       const { error } = await gastosService.deleteLogico(gastoId)
       
       if (error) {
-        // Modo demo: marcar como inactivo localmente
-        setGastos(gastos.map(g => 
-          g.id === gastoId 
-            ? { ...g, activo: false, fecha_eliminacion: new Date().toISOString() }
-            : g
-        ).filter(g => g.activo !== false)) // Filtrar gastos inactivos de la vista
-      } else {
-        // Remover de la lista local (ya que está marcado como inactivo)
-        setGastos(gastos.filter(g => g.id !== gastoId))
+        console.error('Error al eliminar gasto:', error)
+        alert('Error al eliminar el gasto: ' + (error.message || 'Error desconocido'))
+        return
       }
+      
+      // Remover de la lista local (ya que está marcado como inactivo)
+      setGastos(gastos.filter(g => g.id !== gastoId))
 
       if (onActualizar) onActualizar()
     } catch (error) {
@@ -195,41 +189,49 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
     setProductosEncontrados(productosFiltrados)
   }
 
-  const agregarProductoAMercadillo = async (producto) => {
+  const agregarProductoAMercadillo = async (producto, cantidad = 1) => {
     try {
+      // Si el producto ya está en el mercadillo, actualizar cantidad
+      const ingresoExistente = ingresos.find(i => i.id_producto === producto.id)
+      
+      if (ingresoExistente) {
+        const nuevaCantidad = ingresoExistente.cantidad + cantidad
+        await actualizarCantidadProducto(producto.id, nuevaCantidad)
+        return
+      }
+
       const ingreso = {
         id_mercadillo: mercadillo.id,
         id_producto: producto.id,
-        cantidad: 1,
+        cantidad: cantidad,
         precio_unitario: producto.precio_venta,
-        total_vendido: producto.precio_venta
+        total_vendido: producto.precio_venta * cantidad
       }
 
       const { data, error } = await productosMercadilloService.create(ingreso)
       
       if (error) {
-        // Modo demo: agregar localmente
-        const ingresoDemo = {
-          id: Date.now(),
-          ...ingreso,
-          producto: producto
-        }
-        setIngresos([...ingresos, ingresoDemo])
-        setProductosEnMercadillo({
-          ...productosEnMercadillo,
-          [producto.id]: { cantidad: 1, precio_unitario: producto.precio_venta, total: producto.precio_venta }
-        })
-      } else {
-        setIngresos([...ingresos, data])
-        setProductosEnMercadillo({
-          ...productosEnMercadillo,
-          [producto.id]: { cantidad: 1, precio_unitario: producto.precio_venta, total: producto.precio_venta }
-        })
+        console.error('Error al crear ingreso:', error)
+        alert('Error al agregar el producto: ' + (error.message || 'Error desconocido'))
+        return
       }
+      
+      setIngresos([...ingresos, data])
+      setProductosEnMercadillo({
+        ...productosEnMercadillo,
+        [producto.id]: { cantidad: cantidad, precio_unitario: producto.precio_venta, total: producto.precio_venta * cantidad }
+      })
 
-      // Limpiar búsqueda
-      setBusquedaProducto('')
-      setProductosEncontrados([])
+      // Limpiar cantidad de agregar
+      const nuevasCantidades = { ...cantidadAgregar }
+      delete nuevasCantidades[producto.id]
+      setCantidadAgregar(nuevasCantidades)
+      
+      // Limpiar búsqueda solo si no estamos en modo grid
+      if (modoVistaProductos === 'busqueda') {
+        setBusquedaProducto('')
+        setProductosEncontrados([])
+      }
       
       if (onActualizar) onActualizar()
     } catch (error) {
@@ -258,31 +260,25 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
       const { data, error } = await productosMercadilloService.update(ingresoExistente.id, ingresoActualizado)
       
       if (error) {
-        // Modo demo: actualizar localmente
-        setIngresos(ingresos.map(i => 
-          i.id === ingresoExistente.id 
-            ? { ...i, ...ingresoActualizado }
-            : i
-        ))
-        setProductosEnMercadillo({
-          ...productosEnMercadillo,
-          [productoId]: { 
-            cantidad: nuevaCantidad, 
-            precio_unitario: ingresoExistente.precio_unitario,
-            total: nuevaCantidad * ingresoExistente.precio_unitario
-          }
-        })
-      } else {
-        setIngresos(ingresos.map(i => i.id === ingresoExistente.id ? data : i))
-        setProductosEnMercadillo({
-          ...productosEnMercadillo,
-          [productoId]: { 
-            cantidad: nuevaCantidad, 
-            precio_unitario: ingresoExistente.precio_unitario,
-            total: nuevaCantidad * ingresoExistente.precio_unitario
-          }
-        })
+        console.error('Error al actualizar cantidad:', error)
+        alert('Error al actualizar la cantidad: ' + (error.message || 'Error desconocido'))
+        return
       }
+      
+      setIngresos(ingresos.map(i => i.id === ingresoExistente.id ? data : i))
+      setProductosEnMercadillo({
+        ...productosEnMercadillo,
+        [productoId]: { 
+          cantidad: nuevaCantidad, 
+          precio_unitario: ingresoExistente.precio_unitario,
+          total: nuevaCantidad * ingresoExistente.precio_unitario
+        }
+      })
+
+      // Limpiar edición de cantidad
+      const nuevasEdiciones = { ...editandoCantidad }
+      delete nuevasEdiciones[ingresoExistente.id]
+      setEditandoCantidad(nuevasEdiciones)
 
       if (onActualizar) onActualizar()
     } catch (error) {
@@ -290,6 +286,39 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
       alert('Error al actualizar cantidad')
     }
   }
+
+  const iniciarEdicionCantidad = (ingresoId, cantidadActual) => {
+    setEditandoCantidad({
+      ...editandoCantidad,
+      [ingresoId]: cantidadActual
+    })
+  }
+
+  const guardarEdicionCantidad = async (ingresoId, productoId) => {
+    const cantidadEditada = editandoCantidad[ingresoId]
+    if (cantidadEditada !== undefined && cantidadEditada !== null) {
+      await actualizarCantidadProducto(productoId, parseInt(cantidadEditada) || 1)
+    }
+  }
+
+  const cancelarEdicionCantidad = (ingresoId) => {
+    const nuevasEdiciones = { ...editandoCantidad }
+    delete nuevasEdiciones[ingresoId]
+    setEditandoCantidad(nuevasEdiciones)
+  }
+
+  // Obtener productos disponibles (no agregados aún)
+  const productosDisponibles = productos.filter(p => !productosEnMercadillo[p.id])
+  
+  // Agrupar productos por categoría
+  const productosPorCategoria = productosDisponibles.reduce((acc, producto) => {
+    const categoria = producto.categoria || 'Varios'
+    if (!acc[categoria]) {
+      acc[categoria] = []
+    }
+    acc[categoria].push(producto)
+    return acc
+  }, {})
 
   const eliminarProductoDelMercadillo = async (productoId) => {
     try {
@@ -299,17 +328,15 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
       const { error } = await productosMercadilloService.delete(ingresoExistente.id)
       
       if (error) {
-        // Modo demo: eliminar localmente
-        setIngresos(ingresos.filter(i => i.id !== ingresoExistente.id))
-        const nuevosProductos = { ...productosEnMercadillo }
-        delete nuevosProductos[productoId]
-        setProductosEnMercadillo(nuevosProductos)
-      } else {
-        setIngresos(ingresos.filter(i => i.id !== ingresoExistente.id))
-        const nuevosProductos = { ...productosEnMercadillo }
-        delete nuevosProductos[productoId]
-        setProductosEnMercadillo(nuevosProductos)
+        console.error('Error al eliminar producto:', error)
+        alert('Error al eliminar el producto: ' + (error.message || 'Error desconocido'))
+        return
       }
+      
+      setIngresos(ingresos.filter(i => i.id !== ingresoExistente.id))
+      const nuevosProductos = { ...productosEnMercadillo }
+      delete nuevosProductos[productoId]
+      setProductosEnMercadillo(nuevosProductos)
 
       if (onActualizar) onActualizar()
     } catch (error) {
@@ -348,14 +375,12 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
       const { data, error } = await mercadillosService.cambiarEstado(mercadilloActual.id, nuevoEstado)
       
       if (error) {
-        // Modo demo
-        const mercadilloActualizado = { ...mercadilloActual, estado: nuevoEstado }
-        setMercadilloActual(mercadilloActualizado)
-        console.log(`Estado cambiado a ${nuevoEstado} (modo demo)`)
-      } else {
-        setMercadilloActual(data)
-        console.log('Estado actualizado exitosamente')
+        console.error('Error al cambiar estado:', error)
+        alert('Error al cambiar el estado: ' + (error.message || 'Error desconocido'))
+        return
       }
+      
+      setMercadilloActual(data)
       
       if (onActualizar) onActualizar()
     } catch (error) {
@@ -389,13 +414,9 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
         
         // Mostrar resumen
         if (resultado.resultados && resultado.resultados.length > 0) {
-          const mensaje = resultado.modoDemo 
-            ? `✅ Stock actualizado (modo demo):\n\n${resultado.resultados.map(r => 
-                `• ${r.producto}: ${r.stockAnterior} → ${r.nuevoStock} (-${r.vendido})`
-              ).join('\n')}`
-            : `✅ Stock actualizado exitosamente:\n\n${resultado.resultados.filter(r => r.exito).map(r => 
-                `• ${r.producto}: ${r.stockAnterior} → ${r.nuevoStock} (-${r.vendido})`
-              ).join('\n')}`
+          const mensaje = `✅ Stock actualizado exitosamente:\n\n${resultado.resultados.filter(r => r.exito).map(r => 
+            `• ${r.producto}: ${r.stockAnterior} → ${r.nuevoStock} (-${r.vendido})`
+          ).join('\n')}`
           
           alert(mensaje)
         } else {
@@ -535,55 +556,186 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-2">
               💰 Ingresos
             </h3>
-          </div>
-
-          {/* Buscador de productos */}
-          <div className="mb-6">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Buscar productos para añadir..."
-                value={busquedaProducto}
-                onChange={(e) => {
-                  setBusquedaProducto(e.target.value)
-                  buscarProductos(e.target.value)
-                }}
-                className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500"
-              />
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-lg">
-                🔍
-              </span>
+            <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+              <button
+                onClick={() => setModoVistaProductos('busqueda')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  modoVistaProductos === 'busqueda'
+                    ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+              >
+                🔍 Búsqueda
+              </button>
+              <button
+                onClick={() => setModoVistaProductos('grid')}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  modoVistaProductos === 'grid'
+                    ? 'bg-white dark:bg-gray-600 text-blue-600 dark:text-blue-400 shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+              >
+                📋 Lista
+              </button>
             </div>
-
-            {/* Resultados de búsqueda */}
-            {productosEncontrados.length > 0 && (
-              <div className="mt-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg max-h-60 overflow-y-auto">
-                {productosEncontrados.map(producto => (
-                  <div key={producto.id} className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-600 last:border-b-0">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                        {producto.nombre}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {formatearPrecio(producto.precio_venta)} • {producto.categoria}
-                      </p>
-                    </div>
-                    <button 
-                      className={`ml-3 px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                        productosEnMercadillo[producto.id] 
-                          ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' 
-                          : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800'
-                      }`}
-                      onClick={() => agregarProductoAMercadillo(producto)}
-                      disabled={productosEnMercadillo[producto.id]}
-                    >
-                      {productosEnMercadillo[producto.id] ? '✓ Añadido' : '+ Añadir'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
+
+          {/* Modo Búsqueda */}
+          {modoVistaProductos === 'busqueda' && (
+            <div className="mb-6">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Buscar productos para añadir..."
+                  value={busquedaProducto}
+                  onChange={(e) => {
+                    setBusquedaProducto(e.target.value)
+                    buscarProductos(e.target.value)
+                  }}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500"
+                  autoFocus
+                />
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 text-lg">
+                  🔍
+                </span>
+              </div>
+
+              {/* Resultados de búsqueda */}
+              {productosEncontrados.length > 0 && (
+                <div className="mt-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg max-h-60 overflow-y-auto">
+                  {productosEncontrados.map(producto => (
+                    <div key={producto.id} className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-600 last:border-b-0 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {producto.nombre}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {formatearPrecio(producto.precio_venta)} • {producto.categoria}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 ml-3">
+                        <input
+                          type="number"
+                          min="1"
+                          value={cantidadAgregar[producto.id] || 1}
+                          onChange={(e) => {
+                            const cantidad = parseInt(e.target.value) || 1
+                            setCantidadAgregar({
+                              ...cantidadAgregar,
+                              [producto.id]: Math.max(1, cantidad)
+                            })
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-16 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded focus:ring-2 focus:ring-blue-500 outline-none"
+                        />
+                        <button 
+                          className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
+                            productosEnMercadillo[producto.id] 
+                              ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 cursor-not-allowed' 
+                              : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800'
+                          }`}
+                          onClick={() => agregarProductoAMercadillo(producto, cantidadAgregar[producto.id] || 1)}
+                          disabled={productosEnMercadillo[producto.id]}
+                        >
+                          {productosEnMercadillo[producto.id] ? '✓' : '+ Añadir'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Modo Grid/Lista */}
+          {modoVistaProductos === 'grid' && (
+            <div className="mb-6">
+              <div className="mb-4 relative">
+                <input
+                  type="text"
+                  placeholder="Filtrar productos..."
+                  value={busquedaProducto}
+                  onChange={(e) => {
+                    setBusquedaProducto(e.target.value)
+                    buscarProductos(e.target.value)
+                  }}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500 text-sm"
+                />
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500">
+                  🔍
+                </span>
+              </div>
+
+              {/* Productos agrupados por categoría */}
+              {Object.keys(productosPorCategoria).length > 0 ? (
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {Object.entries(productosPorCategoria)
+                    .filter(([categoria]) => {
+                      if (!busquedaProducto.trim()) return true
+                      return categoria.toLowerCase().includes(busquedaProducto.toLowerCase())
+                    })
+                    .map(([categoria, productosCategoria]) => (
+                      <div key={categoria} className="border border-gray-200 dark:border-gray-600 rounded-lg p-3">
+                        <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 uppercase tracking-wide">
+                          {categoria}
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {productosCategoria
+                            .filter(producto => {
+                              if (!busquedaProducto.trim()) return true
+                              return producto.nombre.toLowerCase().includes(busquedaProducto.toLowerCase())
+                            })
+                            .map(producto => (
+                              <div key={producto.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                                    {producto.nombre}
+                                  </p>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                                    {formatearPrecio(producto.precio_venta)}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-1 ml-2">
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    value={cantidadAgregar[producto.id] || 1}
+                                    onChange={(e) => {
+                                      const cantidad = parseInt(e.target.value) || 1
+                                      setCantidadAgregar({
+                                        ...cantidadAgregar,
+                                        [producto.id]: Math.max(1, cantidad)
+                                      })
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="w-12 px-1 py-0.5 text-xs border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 rounded focus:ring-1 focus:ring-blue-500 outline-none"
+                                  />
+                                  <button
+                                    onClick={() => agregarProductoAMercadillo(producto, cantidadAgregar[producto.id] || 1)}
+                                    disabled={productosEnMercadillo[producto.id]}
+                                    className={`px-2 py-1 text-xs rounded transition-colors ${
+                                      productosEnMercadillo[producto.id]
+                                        ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 cursor-not-allowed'
+                                        : 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800'
+                                    }`}
+                                  >
+                                    {productosEnMercadillo[producto.id] ? '✓' : '+'}
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-4xl mb-2">📦</div>
+                  <p className="text-gray-600 dark:text-gray-400">Todos los productos ya están agregados</p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Lista de productos en el mercadillo */}
           <div className="space-y-3">
@@ -591,59 +743,118 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
               <div className="text-center py-8">
                 <div className="text-4xl mb-2">📦</div>
                 <p className="text-gray-600 dark:text-gray-400">No hay ingresos registrados</p>
+                <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
+                  Usa la búsqueda o la lista para agregar productos vendidos
+                </p>
               </div>
             ) : (
-              ingresos.map(ingreso => (
-                <div key={ingreso.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                        {ingreso.producto?.nombre || 'Producto desconocido'}
-                      </h4>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          {ingreso.producto?.categoria}
-                        </span>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          {formatearPrecio(ingreso.precio_unitario)} c/u
-                        </span>
+              ingresos.map(ingreso => {
+                const estaEditando = editandoCantidad[ingreso.id] !== undefined
+                
+                return (
+                  <div key={ingreso.id} className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-blue-900/20 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 truncate text-base">
+                          {ingreso.producto?.nombre || 'Producto desconocido'}
+                        </h4>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-xs px-2 py-0.5 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full">
+                            {ingreso.producto?.categoria}
+                          </span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            {formatearPrecio(ingreso.precio_unitario)} c/u
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center bg-white dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500">
+                      
+                      <div className="flex items-center gap-3">
+                        {/* Control de cantidad mejorado */}
+                        {estaEditando ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              min="1"
+                              value={editandoCantidad[ingreso.id]}
+                              onChange={(e) => {
+                                const cantidad = parseInt(e.target.value) || 1
+                                setEditandoCantidad({
+                                  ...editandoCantidad,
+                                  [ingreso.id]: Math.max(1, cantidad)
+                                })
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  guardarEdicionCantidad(ingreso.id, ingreso.id_producto)
+                                } else if (e.key === 'Escape') {
+                                  cancelarEdicionCantidad(ingreso.id)
+                                }
+                              }}
+                              autoFocus
+                              className="w-20 px-2 py-1.5 text-sm border-2 border-blue-500 dark:border-blue-400 bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
+                            <button
+                              onClick={() => guardarEdicionCantidad(ingreso.id, ingreso.id_producto)}
+                              className="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm"
+                              title="Guardar (Enter)"
+                            >
+                              ✓
+                            </button>
+                            <button
+                              onClick={() => cancelarEdicionCantidad(ingreso.id)}
+                              className="px-2 py-1 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors text-sm"
+                              title="Cancelar (Esc)"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center bg-white dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500 shadow-sm">
+                            <button 
+                              className="px-3 py-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-500 rounded-l-lg transition-colors font-medium"
+                              onClick={() => actualizarCantidadProducto(ingreso.id_producto, ingreso.cantidad - 1)}
+                              title="Reducir cantidad"
+                            >
+                              −
+                            </button>
+                            <span 
+                              className="px-4 py-1.5 text-sm font-bold text-gray-900 dark:text-gray-100 border-x border-gray-200 dark:border-gray-500 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors min-w-[3rem] text-center"
+                              onClick={() => iniciarEdicionCantidad(ingreso.id, ingreso.cantidad)}
+                              title="Haz clic para editar cantidad"
+                            >
+                              {ingreso.cantidad}
+                            </span>
+                            <button 
+                              className="px-3 py-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-500 rounded-r-lg transition-colors font-medium"
+                              onClick={() => actualizarCantidadProducto(ingreso.id_producto, ingreso.cantidad + 1)}
+                              title="Aumentar cantidad"
+                            >
+                              +
+                            </button>
+                          </div>
+                        )}
+
+                        <div className="text-right min-w-[80px]">
+                          <span className="font-bold text-green-600 dark:text-green-400 text-lg">
+                            {formatearPrecio(ingreso.total_vendido)}
+                          </span>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Total
+                          </p>
+                        </div>
+
                         <button 
-                          className="px-3 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-500 rounded-l-lg transition-colors"
-                          onClick={() => actualizarCantidadProducto(ingreso.id_producto, ingreso.cantidad - 1)}
+                          className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                          onClick={() => eliminarProductoDelMercadillo(ingreso.id_producto)}
+                          title="Eliminar producto"
                         >
-                          -
-                        </button>
-                        <span className="px-3 py-1 text-sm font-medium text-gray-900 dark:text-gray-100 border-x border-gray-200 dark:border-gray-500">
-                          {ingreso.cantidad}
-                        </span>
-                        <button 
-                          className="px-3 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-500 rounded-r-lg transition-colors"
-                          onClick={() => actualizarCantidadProducto(ingreso.id_producto, ingreso.cantidad + 1)}
-                        >
-                          +
+                          🗑️
                         </button>
                       </div>
-
-                      <span className="font-semibold text-green-600 dark:text-green-400 min-w-0">
-                        {formatearPrecio(ingreso.total_vendido)}
-                      </span>
-
-                      <button 
-                        className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        onClick={() => eliminarProductoDelMercadillo(ingreso.id_producto)}
-                        title="Eliminar producto"
-                      >
-                        🗑️
-                      </button>
                     </div>
                   </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
         </div>
