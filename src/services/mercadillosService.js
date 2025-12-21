@@ -37,11 +37,42 @@ export const mercadillosService = {
   // Crear nuevo mercadillo
   async create(mercadillo) {
     try {
-      const { data, error } = await supabase
+      // Filtrar solo los campos básicos que existen en la BD
+      // Campos básicos: nombre, fecha, total_ventas
+      const mercadilloBasico = {
+        nombre: mercadillo.nombre,
+        fecha: mercadillo.fecha,
+        total_ventas: mercadillo.total_ventas || 0
+      }
+      
+      // Intentar agregar campos opcionales si existen
+      // Si la columna no existe, Supabase ignorará el campo o dará error
+      // En ese caso, haremos un segundo intento sin esos campos
+      
+      let data, error
+      
+      // Primero intentar con todos los campos
+      const resultado = await supabase
         .from('mercadillo')
         .insert([mercadillo])
         .select()
         .single()
+      
+      data = resultado.data
+      error = resultado.error
+      
+      // Si hay error relacionado con columnas que no existen, intentar solo con campos básicos
+      if (error && (error.message?.includes('column') || error.message?.includes('schema cache'))) {
+        console.log('Error de columna no encontrada, intentando con campos básicos solamente')
+        const resultadoBasico = await supabase
+          .from('mercadillo')
+          .insert([mercadilloBasico])
+          .select()
+          .single()
+        
+        data = resultadoBasico.data
+        error = resultadoBasico.error
+      }
       
       if (error) throw error
       return { data, error: null }

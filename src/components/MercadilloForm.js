@@ -58,17 +58,30 @@ const MercadilloForm = ({ onVolver, onMercadilloCreado }) => {
     setGuardando(true)
     
     try {
-      const estadoInicial = determinarEstadoInicial()
-      
+      // Construir objeto mercadillo solo con campos básicos que existen en la base de datos
+      // Según el esquema: id, nombre, fecha, total_ventas, created_at
       const mercadillo = {
         nombre: formulario.nombre.trim(),
         fecha: formulario.fecha,
-        descripcion: formulario.descripcion.trim(),
-        estado: estadoInicial,
-        modo_actualizacion: formulario.modo_actualizacion,
-        stock_actualizado: false,
         total_ventas: 0
       }
+      
+      // Intentar agregar campos adicionales si existen en la BD
+      // Estos campos pueden no existir en todas las versiones del esquema
+      // Se envía null o se omite si no existe la columna
+      
+      // Descripción (opcional - puede no existir en la BD)
+      if (formulario.descripcion && formulario.descripcion.trim()) {
+        // Solo agregar si la columna existe (se manejará el error si no existe)
+        mercadillo.descripcion = formulario.descripcion.trim()
+      }
+      
+      // Estado y otros campos opcionales (pueden no existir)
+      const estadoInicial = determinarEstadoInicial()
+      // Intentar agregar estos campos, pero no fallar si no existen
+      mercadillo.estado = estadoInicial
+      mercadillo.modo_actualizacion = formulario.modo_actualizacion
+      mercadillo.stock_actualizado = false
 
       const { data, error } = await mercadillosService.create(mercadillo)
       
