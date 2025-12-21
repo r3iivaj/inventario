@@ -25,7 +25,7 @@ export const stockService = {
       if (errorVentas) {
         // En modo demo, usar datos de prueba
         console.log('⚠️ Modo demo: usando datos de prueba para actualización de stock')
-        return await this.actualizarStockDemo(idMercadillo)
+        return await stockService.actualizarStockDemo(idMercadillo)
       }
 
       if (!ventas || ventas.length === 0) {

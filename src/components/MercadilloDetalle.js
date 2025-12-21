@@ -26,6 +26,11 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
   const [actualizandoStock, setActualizandoStock] = useState(false)
   const [mercadilloActual, setMercadilloActual] = useState(mercadillo)
 
+  // Actualizar mercadilloActual cuando cambia el prop mercadillo
+  useEffect(() => {
+    setMercadilloActual(mercadillo)
+  }, [mercadillo])
+
   useEffect(() => {
     cargarDatos()
   }, [mercadillo.id]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -62,10 +67,12 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
       const productosMap = {}
       const ingresosData = ingresosResult.error ? [] : (ingresosResult.data || [])
       ingresosData.forEach(ingreso => {
-        productosMap[ingreso.id_producto] = {
-          cantidad: ingreso.cantidad,
-          precio_unitario: ingreso.precio_unitario,
-          total: ingreso.total_vendido
+        if (ingreso && ingreso.id_producto) {
+          productosMap[ingreso.id_producto] = {
+            cantidad: ingreso.cantidad || 0,
+            precio_unitario: ingreso.precio_unitario || 0,
+            total: ingreso.total_vendido || 0
+          }
         }
       })
       setProductosEnMercadillo(productosMap)
@@ -381,19 +388,26 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
         setMercadilloActual(mercadilloActualizado)
         
         // Mostrar resumen
-        const mensaje = resultado.modoDemo 
-          ? `✅ Stock actualizado (modo demo):\n\n${resultado.resultados.map(r => 
-              `• ${r.producto}: ${r.stockAnterior} → ${r.nuevoStock} (-${r.vendido})`
-            ).join('\n')}`
-          : `✅ Stock actualizado exitosamente:\n\n${resultado.resultados.filter(r => r.exito).map(r => 
-              `• ${r.producto}: ${r.stockAnterior} → ${r.nuevoStock} (-${r.vendido})`
-            ).join('\n')}`
+        if (resultado.resultados && resultado.resultados.length > 0) {
+          const mensaje = resultado.modoDemo 
+            ? `✅ Stock actualizado (modo demo):\n\n${resultado.resultados.map(r => 
+                `• ${r.producto}: ${r.stockAnterior} → ${r.nuevoStock} (-${r.vendido})`
+              ).join('\n')}`
+            : `✅ Stock actualizado exitosamente:\n\n${resultado.resultados.filter(r => r.exito).map(r => 
+                `• ${r.producto}: ${r.stockAnterior} → ${r.nuevoStock} (-${r.vendido})`
+              ).join('\n')}`
+          
+          alert(mensaje)
+        } else {
+          alert('✅ Stock actualizado exitosamente')
+        }
         
-        alert(mensaje)
         setMostrarModalStock(false)
+        // Recargar datos para reflejar cambios en el stock
+        await cargarDatos()
         if (onActualizar) onActualizar()
       } else {
-        alert(`❌ Error al actualizar stock: ${resultado.error}`)
+        alert(`❌ Error al actualizar stock: ${resultado.error || 'Error desconocido'}`)
       }
     } catch (error) {
       console.error('Error:', error)
@@ -415,8 +429,8 @@ const MercadilloDetalle = ({ mercadillo, onVolver, onActualizar }) => {
     return diasTranscurridos <= 90
   }
 
-  const totalGastos = gastos.filter(g => g.activo !== false).reduce((sum, gasto) => sum + gasto.cantidad, 0)
-  const totalIngresos = ingresos.reduce((sum, ingreso) => sum + ingreso.total_vendido, 0)
+  const totalGastos = (gastos || []).filter(g => g.activo !== false).reduce((sum, gasto) => sum + (gasto.cantidad || 0), 0)
+  const totalIngresos = (ingresos || []).reduce((sum, ingreso) => sum + (ingreso.total_vendido || 0), 0)
   const beneficio = totalIngresos - totalGastos
 
   if (cargando) {
