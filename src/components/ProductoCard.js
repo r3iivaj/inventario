@@ -81,6 +81,10 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
     if (actualizando) return
     
     const nuevoPrecio = Math.max(0, producto.precio_venta + incremento)
+    
+    // Guardar el ID del producto en sessionStorage para restaurar el foco después
+    sessionStorage.setItem('focusProductId', producto.id)
+    
     setActualizando(true)
     
     try {
@@ -91,12 +95,14 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
       if (error) {
         console.error('Error al actualizar precio:', error)
         alert('Error al actualizar el precio')
+        sessionStorage.removeItem('focusProductId')
       } else if (onProductoActualizado) {
         onProductoActualizado(data)
       }
     } catch (error) {
       console.error('Error:', error)
       alert('Error al actualizar el precio')
+      sessionStorage.removeItem('focusProductId')
     } finally {
       setActualizando(false)
     }
@@ -219,7 +225,12 @@ const ProductoCard = ({ producto, onProductoActualizado, onEditarProducto, onVer
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 relative">
+    <div 
+      id={`producto-${producto.id}`}
+      data-producto-id={producto.id}
+      className="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 relative"
+      tabIndex="-1"
+    >
       {/* Loading overlay */}
       {(actualizando || uploadingImage) && (
         <div className="absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-90 dark:bg-opacity-90 flex items-center justify-center z-10 rounded-xl">

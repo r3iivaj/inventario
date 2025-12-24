@@ -56,6 +56,23 @@ const InventarioApp = () => {
     }
   }, [cargarProductos, vistaActual])
 
+  // Efecto para restaurar el foco al producto editado después de que los productos se actualicen
+  useEffect(() => {
+    const focusProductId = sessionStorage.getItem('focusProductId')
+    if (focusProductId && productos.length > 0 && vistaActual === 'productos') {
+      const timer = setTimeout(() => {
+        const productoElement = document.getElementById(`producto-${focusProductId}`)
+        if (productoElement) {
+          productoElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          productoElement.focus()
+          sessionStorage.removeItem('focusProductId')
+        }
+      }, 300)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [productos, vistaActual])
+
   const handleFiltroChange = (nuevosFiltros) => {
     setFiltros(prevFiltros => ({
       ...prevFiltros,
@@ -69,11 +86,23 @@ const InventarioApp = () => {
         producto.id === productoActualizado.id ? productoActualizado : producto
       )
     )
-    // Devolver foco a la búsqueda
+    
+    // Restaurar foco al producto editado si existe en sessionStorage
     setTimeout(() => {
-      const searchInput = document.querySelector('input[placeholder="Buscar productos..."]')
-      if (searchInput) {
-        searchInput.focus()
+      const focusProductId = sessionStorage.getItem('focusProductId')
+      if (focusProductId) {
+        const productoElement = document.getElementById(`producto-${focusProductId}`)
+        if (productoElement) {
+          productoElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          productoElement.focus()
+        }
+        sessionStorage.removeItem('focusProductId')
+      } else {
+        // Solo devolver foco a la búsqueda si no hay producto para enfocar
+        const searchInput = document.querySelector('input[placeholder="Buscar productos..."]')
+        if (searchInput) {
+          searchInput.focus()
+        }
       }
     }, 100)
   }
@@ -84,6 +113,8 @@ const InventarioApp = () => {
   }
 
   const handleEditarProducto = (producto) => {
+    // Guardar el ID del producto que se va a editar
+    sessionStorage.setItem('focusProductId', producto.id)
     setProductoEditando(producto)
     setShowProductoForm(true)
   }
@@ -103,17 +134,12 @@ const InventarioApp = () => {
   }
 
   const handleProductoEditado = (productoEditado) => {
+    // Guardar el ID del producto editado para restaurar el foco
+    sessionStorage.setItem('focusProductId', productoEditado.id)
+    
     handleProductoActualizado(productoEditado)
     setShowProductoForm(false)
     setProductoEditando(null)
-    
-    // Devolver foco a la búsqueda
-    setTimeout(() => {
-      const searchInput = document.querySelector('input[placeholder="Buscar productos..."]')
-      if (searchInput) {
-        searchInput.focus()
-      }
-    }, 100)
   }
 
   const handleCerrarFormulario = () => {
